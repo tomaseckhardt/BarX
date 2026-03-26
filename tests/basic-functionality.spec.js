@@ -70,3 +70,46 @@ test('zakladni funkcnost bez potvrzeni rezervace', async ({ page }) => {
   await pause(page);
   await expect(page.locator('#cardsView')).toHaveClass(/is-active/);
 });
+
+test('drink modal funguje pro mys i klavesnici', async ({ page }) => {
+  test.setTimeout(90_000);
+
+  await page.goto('/');
+  await pause(page);
+
+  const monstRumCard = page.getByRole('button', { name: 'Otevřít detail drinku MonstRum' });
+  const modal = page.locator('#drinkModal');
+
+  await monstRumCard.click();
+  await pause(page);
+
+  await expect(modal).toBeVisible();
+  await expect(page.locator('#drinkModalTitle')).toHaveText('MonstRum');
+  await expect(page.locator('#drinkModalPrice')).toHaveText('149 Kč');
+  await expect(page.locator('#drinkModalStrength')).toContainText('4/5');
+
+  await page.keyboard.press('Escape');
+  await pause(page);
+  await expect(modal).toBeHidden();
+  await expect(monstRumCard).toBeFocused();
+
+  await monstRumCard.focus();
+  await page.keyboard.press('Enter');
+  await pause(page);
+  await expect(modal).toBeVisible();
+
+  await page.getByRole('button', { name: 'Zavřít detail drinku' }).click();
+  await pause(page);
+  await expect(modal).toBeHidden();
+  await expect(monstRumCard).toBeFocused();
+
+  await monstRumCard.focus();
+  await page.keyboard.press('Space');
+  await pause(page);
+  await expect(modal).toBeVisible();
+
+  await page.locator('.drink-modal-backdrop').click({ position: { x: 10, y: 10 } });
+  await pause(page);
+  await expect(modal).toBeHidden();
+  await expect(monstRumCard).toBeFocused();
+});
