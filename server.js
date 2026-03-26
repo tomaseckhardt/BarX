@@ -28,7 +28,35 @@ const TABLES = [
   { id: 'booth-6', seats: 6 },
   { id: 'vip-8', seats: 8 }
 ];
-const RESERVATION_STATUSES = new Set(['new', 'called', 'confirmed', 'no-show', 'done']);
+const RESERVATION_STATUSES = new Set(['new', 'called', 'confirmed', 'done', 'completed']);
+
+function getReservationStartMs(item) {
+  const dateValue = String(item.date || '');
+  const slotValue = String(item.slot || '');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) return null;
+  if (!/^\d{2}:\d{2}$/.test(slotValue)) return null;
+  const ms = new Date(dateValue + 'T' + slotValue + ':00').getTime();
+  return Number.isFinite(ms) ? ms : null;
+}
+
+function autoCompleteExpiredReservations(items) {
+  const nowMs = Date.now();
+  let changed = false;
+  const next = items.map(item => {
+    const startMs = getReservationStartMs(item);
+    if (startMs === null) return item;
+    if (nowMs < startMs + (60 * 60 * 1000)) return item;
+    if (String(item.status || 'new').trim() === 'completed') return item;
+
+    changed = true;
+    return {
+      ...item,
+      status: 'completed',
+      updatedAt: new Date().toISOString()
+    };
+  });
+  return { next, changed };
+}
 
 function sendJson(res, statusCode, payload) {
   res.writeHead(statusCode, {
@@ -172,7 +200,11 @@ async function handleApi(req, res, pathname) {
 
   if (pathname === '/api/reservations' && req.method === 'GET') {
     const reservations = await readReservations();
-    sendJson(res, 200, { reservations: sortReservations(reservations) });
+    const { next, changed } = autoCompleteExpiredReservations(reservations);
+    if (changed) {
+      await writeReservations(next);
+    }
+    sendJson(res, 200, { reservations: sortReservations(next) });
     return;
   }
 

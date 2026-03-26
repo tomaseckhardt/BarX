@@ -25,7 +25,9 @@
     "tableId": "booth-6",
     "note": "Omluva za zpoždění: Řidič tramvaje čekal, až dopije espresso.",
     "drink": "MonstRum",
-    "createdAt": "2026-03-25T16:03:24.201Z"
+    "createdAt": "2026-03-25T16:03:24.201Z",
+    "status": "done",
+    "updatedAt": "2026-03-26T12:11:39.262Z"
   },
   {
     "id": "9fedac3e-53ab-4e86-a173-e8b1dd0ae274",

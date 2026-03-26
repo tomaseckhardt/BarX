@@ -1150,8 +1150,27 @@
 
     /* ── RESPONSIVE ─────────────────────────────────── */
     @media (max-width: 600px) {
-      nav { padding: 1rem 1.2rem; }
-      .nav-links { display: none; }
+      nav {
+        padding: .9rem 1rem;
+        flex-wrap: wrap;
+        row-gap: .4rem;
+      }
+      .nav-links {
+        display: flex;
+        width: 100%;
+        gap: .95rem;
+        margin-top: .2rem;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+      .nav-links::-webkit-scrollbar { display: none; }
+      .nav-links li { flex: 0 0 auto; }
+      .nav-links a {
+        white-space: nowrap;
+        font-size: .72rem;
+        letter-spacing: .11em;
+      }
       .stats { gap: 2rem; }
       .gas-planet {
         width: 220px;
@@ -1166,8 +1185,23 @@
       }
       .hero-actions .btn { width: 100%; }
       .reservation-panel,
-      .reservation-aside { padding: 1.2rem; }
+      .reservation-aside { padding: 1rem; }
+      .reservation-intro p {
+        font-size: .92rem;
+        line-height: 1.55;
+      }
       .reservation-grid { grid-template-columns: 1fr; }
+      .field input,
+      .field select,
+      .field textarea {
+        padding: .86rem .9rem;
+      }
+      .slot-grid,
+      .table-grid {
+        grid-template-columns: 1fr;
+      }
+      .slot-btn,
+      .table-option { padding: .82rem .88rem; }
       .reservation-actions .btn { width: 100%; }
 
       .vibe-row {
@@ -1220,6 +1254,12 @@
       .reservation-intro {
         flex-direction: column;
         align-items: stretch;
+      }
+
+      /* Touch screens: hide hover-only tooltip bubbles */
+      [data-tip]::before,
+      [data-tip]::after {
+        display: none;
       }
     }
 
@@ -1565,6 +1605,10 @@
   color: var(--muted);
   font-size: .92rem;
   min-height: 1.2rem;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .admin-page .status.error { color: var(--danger); }
 .admin-page .status.success { color: var(--success); }
@@ -1627,6 +1671,66 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.admin-page .date-sort-btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: .28rem;
+  cursor: pointer;
+  padding: 0;
+}
+.admin-page #dateSortIndicator {
+  font-size: .95rem;
+  line-height: 1;
+  font-weight: 800;
+  display: inline-block;
+  min-width: .85rem;
+  text-align: center;
+}
+.admin-page .date-sort-btn:hover {
+  color: #f0c986;
+}
+.admin-page .date-sort-btn:focus-visible {
+  outline: 2px solid rgba(240, 201, 134, .85);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+.admin-page .cards-sort-row {
+  padding: .35rem 1.2rem 0;
+  display: flex;
+  justify-content: flex-start;
+}
+.admin-page .date-sort-chip {
+  appearance: none;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: .35rem .78rem;
+  font: inherit;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--accent1);
+  background: rgba(255,255,255,.03);
+  display: inline-flex;
+  align-items: center;
+  gap: .28rem;
+  cursor: pointer;
+}
+.admin-page .date-sort-chip:hover {
+  border-color: rgba(200,169,110,.45);
+  color: #f0c986;
+}
+.admin-page .date-sort-chip:focus-visible {
+  outline: 2px solid rgba(240, 201, 134, .85);
+  outline-offset: 2px;
+}
 /* Column width hints — browser distributes remaining space */
 .admin-page thead th:nth-child(1) { width: 10%; }   /* Jméno     */
 .admin-page thead th:nth-child(2) { width: 13%; }   /* Kontakt   */
@@ -1667,6 +1771,20 @@
 }
 .admin-page tbody tr:hover { background: rgba(255,255,255,.02); }
 .admin-page .muted { color: var(--muted); }
+.admin-page .table-highlight {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(200,169,110,.42);
+  background: rgba(200,169,110,.14);
+  color: #ffeab2;
+  padding: .2rem .55rem;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  white-space: nowrap;
+  max-width: 100%;
+}
 .admin-page .badge {
   display: inline-block;
   padding: .3rem .65rem;
@@ -1679,9 +1797,9 @@
   color: var(--gold);
 }
 .admin-page .badge.status-new {
-  color: #ffe7a3;
-  border-color: rgba(255,212,95,.45);
-  background: rgba(255,212,95,.14);
+  color: #cfe9ff;
+  border-color: rgba(120,190,255,.55);
+  background: rgba(120,190,255,.16);
 }
 .admin-page .badge.status-called {
   color: #c6e6ff;
@@ -1693,15 +1811,15 @@
   border-color: rgba(100,255,170,.55);
   background: rgba(100,255,170,.16);
 }
-.admin-page .badge.status-no-show {
-  color: #ffc7c7;
-  border-color: rgba(255,120,120,.5);
-  background: rgba(255,120,120,.16);
-}
 .admin-page .badge.status-done {
   color: #e4d7ff;
   border-color: rgba(166,130,255,.5);
   background: rgba(166,130,255,.15);
+}
+.admin-page .badge.status-completed {
+  color: #bdf2ff;
+  border-color: rgba(110,220,255,.5);
+  background: rgba(110,220,255,.14);
 }
 .admin-page .empty {
   padding: 2rem 1.4rem;
@@ -1742,6 +1860,11 @@
 .admin-page .mini-btn.is-warning {
   border-color: rgba(255,180,90,.42);
   color: #ffe1b8;
+}
+.admin-page .mini-btn.is-gold {
+  border-color: rgba(255,212,95,.58);
+  color: #ffeaa8;
+  background: rgba(255,212,95,.08);
 }
 .admin-page .mini-btn.is-danger {
   border-color: rgba(255,120,120,.42);
@@ -1796,6 +1919,20 @@
   line-height: 1.5;
   font-size: .9rem;
 }
+.admin-page .card-table-highlight {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  border: 1px solid rgba(200,169,110,.45);
+  border-radius: 999px;
+  background: rgba(200,169,110,.14);
+  color: #ffeab2;
+  padding: .26rem .62rem;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
 .admin-page .card-tags {
   display: flex;
   gap: .45rem;
@@ -1831,7 +1968,66 @@
     flex: 1;
     min-width: 0;
   }
+  .admin-page .toolbar { padding: 1rem; }
+  .admin-page .search { min-width: 0; }
+  .admin-page .view-tabs {
+    width: 100%;
+    justify-content: stretch;
+  }
+  .admin-page .view-tab {
+    flex: 1 1 0;
+    text-align: center;
+  }
+}
+@media (max-width: 760px) {
+  .admin-page h1 { font-size: clamp(2.2rem, 11vw, 3rem); }
+  .admin-page .topbar p {
+    font-size: .88rem;
+    line-height: 1.45;
+  }
+
+  /* Mobile default is cards; if table is opened, keep it scrollable and stable */
+  .admin-page .cards-wrap {
+    grid-template-columns: 1fr;
+    padding: .85rem;
+    gap: .8rem;
+  }
+  .admin-page .cards-sort-row {
+    padding: .25rem .85rem 0;
+  }
+  .admin-page .reservation-card {
+    padding: .85rem;
+    gap: .55rem;
+  }
+
+  .admin-page .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .admin-page table {
+    min-width: 780px;
+    table-layout: auto;
+  }
+  .admin-page thead th,
+  .admin-page tbody td {
+    white-space: nowrap;
+  }
+  .admin-page tbody td:nth-child(2),
+  .admin-page tbody td:nth-child(3) {
+    white-space: nowrap;
+  }
+
+  .admin-page .row-actions {
+    justify-content: flex-end;
+    gap: .15rem;
+  }
+  .admin-page .mini-btn {
+    width: 1.62rem;
+    height: 1.62rem;
+    font-size: .86rem;
+  }
 }
 @media (max-width: 560px) {
   .admin-page .stats { grid-template-columns: 1fr; }
+  .admin-page .stat strong { font-size: 1.8rem; }
 }

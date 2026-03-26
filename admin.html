@@ -48,10 +48,11 @@
             <option value="new">Nove</option>
             <option value="called">Volano</option>
             <option value="confirmed">Potvrzene</option>
-            <option value="no-show">No-show</option>
-            <option value="done">Hotovo</option>
+            <option value="done">V poradku</option>
+            <option value="completed">Dokonceno</option>
           </select>
           <select id="sortBy" class="toolbar-select" aria-label="Razeni rezervaci" data-tip="Razeni vysledku">
+            <option value="today-first" selected>Dnes jako prvni</option>
             <option value="date-desc">Nejnovejsi termin</option>
             <option value="date-asc">Nejstarsi termin</option>
             <option value="created-desc">Nejnovejsi vytvoreni</option>
@@ -76,7 +77,11 @@
             <tr>
               <th>Jméno</th>
               <th>Kontakt</th>
-              <th>Datum a čas</th>
+              <th>
+                <button id="dateSortToggle" class="date-sort-btn" type="button" aria-label="Řazení podle data a času" data-tip="Řazení: neutral, vzestupně, sestupně">
+                  Datum a čas <span id="dateSortIndicator" aria-hidden="true">•</span>
+                </button>
+              </th>
               <th>Stůl</th>
               <th>Drink</th>
               <th>Hosté</th>
@@ -89,6 +94,11 @@
         <div id="emptyState" class="empty" hidden>Zatím tu nejsou žádné rezervace.</div>
       </div>
       <div id="cardsView" class="view-content">
+        <div class="cards-sort-row">
+          <button id="dateSortToggleCards" class="date-sort-chip" type="button" aria-label="Řazení podle data a času" data-tip="Řazení: neutral, vzestupně, sestupně">
+            Datum <span id="dateSortIndicatorCards" aria-hidden="true">•</span>
+          </button>
+        </div>
         <div id="reservationCards" class="cards-wrap"></div>
         <div id="emptyCards" class="empty" hidden>Zatím tu nejsou žádné rezervace.</div>
       </div>
@@ -117,6 +127,10 @@
     const searchInput = document.getElementById('searchInput');
     const statusFilter = document.getElementById('statusFilter');
     const sortBy = document.getElementById('sortBy');
+    const dateSortToggle = document.getElementById('dateSortToggle');
+    const dateSortIndicator = document.getElementById('dateSortIndicator');
+    const dateSortToggleCards = document.getElementById('dateSortToggleCards');
+    const dateSortIndicatorCards = document.getElementById('dateSortIndicatorCards');
     const statusEl = document.getElementById('status');
     const statTotal = document.getElementById('statTotal');
     const statToday = document.getElementById('statToday');
@@ -125,10 +139,43 @@
 
     let reservations = [];
     let currentView = 'table';
+    let userChangedView = false;
+    let dateSortMode = 'none';
+
+    function updateDateSortUI() {
+      const indicatorMap = {
+        'none': '•',
+        'asc': '↑',
+        'desc': '↓'
+      };
+      const labelMap = {
+        'none': 'Řazení podle data a času: bez řazení',
+        'asc': 'Řazení podle data a času: vzestupně',
+        'desc': 'Řazení podle data a času: sestupně'
+      };
+      const indicator = indicatorMap[dateSortMode] || '•';
+      const label = labelMap[dateSortMode] || labelMap.none;
+      dateSortIndicator.textContent = indicator;
+      dateSortIndicatorCards.textContent = indicator;
+      dateSortToggle.setAttribute('aria-label', label);
+      dateSortToggleCards.setAttribute('aria-label', label);
+    }
+
+    function cycleDateSortMode() {
+      if (dateSortMode === 'none') {
+        dateSortMode = 'asc';
+      } else if (dateSortMode === 'asc') {
+        dateSortMode = 'desc';
+      } else {
+        dateSortMode = 'none';
+      }
+      updateDateSortUI();
+      renderViews();
+    }
 
     function normalizeStatus(status) {
       const value = String(status || 'new').trim();
-      const allowed = ['new', 'called', 'confirmed', 'no-show', 'done'];
+      const allowed = ['new', 'called', 'confirmed', 'done', 'completed'];
       return allowed.includes(value) ? value : 'new';
     }
 
@@ -137,8 +184,8 @@
         'new': 'nova',
         'called': 'volano',
         'confirmed': 'potvrzena',
-        'no-show': 'no-show',
-        'done': 'hotovo'
+        'done': 'v poradku',
+        'completed': 'dokonceno'
       };
       return map[normalizeStatus(status)] || 'nova';
     }
@@ -241,8 +288,21 @@
         return dateBase + (parseSlotMinutes(item.slot) * 60000);
       };
 
+      const now = new Date();
+      const today = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+
+      if (dateSortMode === 'asc') {
+        filtered.sort((a, b) => reservationDateTime(a) - reservationDateTime(b));
+        return filtered;
+      }
+      if (dateSortMode === 'desc') {
+        filtered.sort((a, b) => reservationDateTime(b) - reservationDateTime(a));
+        return filtered;
+      }
+
       const sortMode = sortBy.value;
-      filtered.sort((a, b) => {
+      const compareWithinGroup = (a, b) => {
+        if (sortMode === 'today-first') return reservationDateTime(b) - reservationDateTime(a);
         if (sortMode === 'date-asc') return reservationDateTime(a) - reservationDateTime(b);
         if (sortMode === 'date-desc') return reservationDateTime(b) - reservationDateTime(a);
         if (sortMode === 'created-asc') return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
@@ -251,6 +311,16 @@
         if (sortMode === 'guests-asc') return Number(a.guests || 0) - Number(b.guests || 0);
         if (sortMode === 'guests-desc') return Number(b.guests || 0) - Number(a.guests || 0);
         return 0;
+      };
+
+      filtered.sort((a, b) => {
+        const todayRankA = a.date === today ? 0 : 1;
+        const todayRankB = b.date === today ? 0 : 1;
+        if (todayRankA !== todayRankB) return todayRankA - todayRankB;
+
+        if (dateSortMode === 'asc') return reservationDateTime(a) - reservationDateTime(b);
+        if (dateSortMode === 'desc') return reservationDateTime(b) - reservationDateTime(a);
+        return compareWithinGroup(a, b);
       });
 
       return filtered;
@@ -290,12 +360,8 @@
               await updateReservation(item.id, { status: 'confirmed' }, 'Rezervace byla potvrzena.');
               return;
             }
-            if (action === 'no-show') {
-              await updateReservation(item.id, { status: 'no-show' }, 'Rezervace označena jako no-show.');
-              return;
-            }
             if (action === 'done') {
-              await updateReservation(item.id, { status: 'done' }, 'Rezervace označena jako hotovo.');
+              await updateReservation(item.id, { status: 'done' }, 'Rezervace označena jako v pořádku.');
             }
           } catch (error) {
             setStatus(error.message, 'error');
@@ -315,15 +381,14 @@
           '<td><strong>' + item.name + '</strong><br><span class="badge status-' + status + '">' + statusLabel(status) + '</span></td>' +
           '<td>' + item.phone + '<br><span class="muted">' + item.email + '</span></td>' +
           '<td>' + formatDate(item.date, item.slot) + '<br><span class="muted">vytvořeno ' + new Date(item.createdAt).toLocaleString('cs-CZ') + '</span></td>' +
-          '<td>' + (TABLE_LABELS[item.tableId] || item.tableId) + '</td>' +
+          '<td><span class="table-highlight" title="' + (TABLE_LABELS[item.tableId] || item.tableId) + '">' + (TABLE_LABELS[item.tableId] || item.tableId) + '</span></td>' +
           '<td>' + (item.drink || '-') + '</td>' +
           '<td>' + item.guests + '</td>' +
           '<td title="' + (item.note || '') + '">' + (item.note || '<span class="muted">bez poznámky</span>') + '</td>' +
           '<td><div class="row-actions">' +
             '<button class="mini-btn is-muted" type="button" data-action="call" aria-label="Zavolat" data-tip="Zavolat hostu">☎</button>' +
             '<button class="mini-btn is-success" type="button" data-action="confirm" aria-label="Potvrdit" data-tip="Potvrdit rezervaci">✓</button>' +
-            '<button class="mini-btn is-warning" type="button" data-action="no-show" aria-label="No-show" data-tip="Označit jako no-show">✗</button>' +
-            '<button class="mini-btn is-success" type="button" data-action="done" aria-label="Hotovo" data-tip="Rezervace dokončena">★</button>' +
+            '<button class="mini-btn is-gold" type="button" data-action="done" aria-label="V pořádku" data-tip="Označit jako v pořádku">★</button>' +
             '<button class="mini-btn is-danger" type="button" data-action="delete" aria-label="Smazat" data-tip="Smazat rezervaci">🗑</button>' +
           '</div></td>';
         attachActionHandlers(tr, item);
@@ -335,7 +400,19 @@
       cardsWrap.innerHTML = '';
       emptyCards.hidden = filtered.length > 0;
 
+      const today = new Date().toISOString().split('T')[0];
+      const todayItems = [];
+      const otherItems = [];
       filtered.forEach(item => {
+        if (item.date === today) {
+          todayItems.push(item);
+          return;
+        }
+        otherItems.push(item);
+      });
+      const cardsItems = todayItems.concat(otherItems);
+
+      cardsItems.forEach(item => {
         const state = getDateState(item.date);
         const status = normalizeStatus(item.status);
         const card = document.createElement('article');
@@ -349,17 +426,16 @@
               '<span class="card-tag">' + (item.drink || '-') + '</span>' +
             '</div>' +
           '</div>' +
+          '<div class="card-table-highlight">Stůl: ' + (TABLE_LABELS[item.tableId] || item.tableId) + '</div>' +
           '<div class="card-meta">' +
             formatDate(item.date, item.slot) + '<br>' +
-            (TABLE_LABELS[item.tableId] || item.tableId) + '<br>' +
             item.guests + ' hostů · ' + item.phone + '<br>' +
             (item.note ? item.note : '<span class="muted">bez poznámky</span>') +
           '</div>' +
           '<div class="row-actions">' +
             '<button class="mini-btn is-muted" type="button" data-action="call" aria-label="Zavolat" data-tip="Zavolat hostu">☎</button>' +
             '<button class="mini-btn is-success" type="button" data-action="confirm" aria-label="Potvrdit" data-tip="Potvrdit rezervaci">✓</button>' +
-            '<button class="mini-btn is-warning" type="button" data-action="no-show" aria-label="No-show" data-tip="Označit jako no-show">✗</button>' +
-            '<button class="mini-btn is-success" type="button" data-action="done" aria-label="Hotovo" data-tip="Rezervace dokončena">★</button>' +
+            '<button class="mini-btn is-gold" type="button" data-action="done" aria-label="V pořádku" data-tip="Označit jako v pořádku">★</button>' +
             '<button class="mini-btn is-danger" type="button" data-action="delete" aria-label="Smazat" data-tip="Smazat rezervaci">🗑</button>' +
           '</div>';
 
@@ -403,11 +479,25 @@
       renderViews();
     });
 
+    dateSortToggle.addEventListener('click', cycleDateSortMode);
+    dateSortToggleCards.addEventListener('click', cycleDateSortMode);
+
     tabButtons.forEach(button => {
       button.addEventListener('click', () => {
+        userChangedView = true;
         switchView(button.dataset.view);
       });
     });
+
+    function applyMobileViewDefaults() {
+      if (window.matchMedia('(max-width: 760px)').matches && !userChangedView) {
+        switchView('cards');
+      }
+    }
+
+    window.addEventListener('resize', applyMobileViewDefaults);
+    applyMobileViewDefaults();
+    updateDateSortUI();
 
     setInterval(async () => {
       try {

@@ -46,15 +46,10 @@ test('admin quick actions meni stav rezervace', async ({ page }) => {
   await page.fill('#searchInput', guestName);
   await expect(row()).toContainText('potvrzena');
 
-  await row().locator('[data-action="no-show"]').click();
-  await expect(page.locator('#status')).toContainText('Rezervace označena jako no-show.');
-  await page.fill('#searchInput', guestName);
-  await expect(row()).toContainText('no-show');
-
   await row().locator('[data-action="done"]').click();
-  await expect(page.locator('#status')).toContainText('Rezervace označena jako hotovo.');
+  await expect(page.locator('#status')).toContainText('Rezervace označena jako v pořádku.');
   await page.fill('#searchInput', guestName);
-  await expect(row()).toContainText('hotovo');
+  await expect(row()).toContainText('v poradku');
 
   await row().locator('[data-action="delete"]').click();
   await expect(page.locator('#status')).toContainText('Rezervace byla smazána.');
