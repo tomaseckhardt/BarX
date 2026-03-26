@@ -92,7 +92,7 @@
     <div class="hero-ring ring-2" aria-hidden="true"></div>
     <div class="hero-ring ring-3" aria-hidden="true"></div>
     <p class="hero-eyebrow">Craft Cocktail Bar · Praha</p>
-    <h1>BarX</h1>
+    <h1 aria-label="BarX">BAR X</h1>
     <p class="hero-sub">Kde každý drink vypráví příběh. Originální recepty, prémiové ingredience a atmosféra, kterou nezapomeneš.</p>
     <div class="hero-actions">
       <a href="#menu" class="btn btn-primary">Prozkoumat menu</a>
@@ -528,6 +528,30 @@
   </section>
   </main>
 
+  <div id="drinkModal" class="drink-modal" hidden aria-hidden="true">
+    <div class="drink-modal-backdrop" data-close-modal="true"></div>
+    <div class="drink-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="drinkModalTitle">
+      <button id="drinkModalClose" class="drink-modal-close" type="button" aria-label="Zavřít detail drinku">×</button>
+      <div id="drinkModalVisual" class="drink-modal-visual">
+        <div class="drink-modal-orb"></div>
+        <div class="drink-modal-glow"></div>
+        <div id="drinkModalGlyph" class="drink-modal-glyph">🍸</div>
+      </div>
+      <div class="drink-modal-content">
+        <div id="drinkModalBadge" class="drink-modal-badge">Signature</div>
+        <h3 id="drinkModalTitle"></h3>
+        <p id="drinkModalDesc" class="drink-modal-desc"></p>
+        <div class="drink-modal-strength-container">
+          <label for="drinkStrengthSlider"><strong>Síla:</strong></label>
+          <input type="range" id="drinkStrengthSlider" class="drink-strength-slider" min="1" max="5" value="3" disabled>
+          <span id="drinkModalStrength" class="strength-value"></span>
+        </div>
+        <p class="drink-modal-meta-row"><strong>Cena:</strong> <span id="drinkModalPrice"></span></p>
+        <div id="drinkModalIngredients" class="drink-modal-ingredients"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- FOOTER -->
   <footer>
     <p>© 2026 <span>BarX</span> · Craft Cocktail Bar · Praha · <a class="admin-link" href="/admin.html">Admin přehled</a> · Pij zodpovědně 🍹</p>
@@ -537,7 +561,13 @@
   <div id="cursor-glow"></div>
 
   <script>
+    // ===== BarX Public Website =====
+    // Drink menu, drink modals, a rezervační systém
+
+    // API konfigurace
     const API_BASE = '/api/reservations';
+
+    // Dostupné stoly s místnosti
     const TABLES = [
       { id: 'bar-2', name: 'Bar 02', zone: 'Barový pult', seats: 2 },
       { id: 'window-4', name: 'Window 04', zone: 'U okna', seats: 4 },
@@ -545,6 +575,7 @@
       { id: 'booth-6', name: 'Booth 06', zone: 'Polouzavřený box', seats: 6 },
       { id: 'vip-8', name: 'VIP 08', zone: 'Zadní salonek', seats: 8 }
     ];
+    // Vtipné omluvy za pozdní příchod (náhodně vybéráno)
     const FUNNY_EXCUSES = [
       'Zdržel mě tygr v metru.',
       'Řidič tramvaje čekal, až dopije espresso.',
@@ -555,17 +586,38 @@
       'Navigace mě poslala přes tajnou únikovou chodbu.',
       'Uvízl jsem ve frontě na poslední trdelník ve městě.'
     ];
-    const DISCOUNT_TRIGGER_VIBE = 9;
+    // ===== CONSTANTS =====
+    // Konfigurace vibe systému a cen
+    const DISCOUNT_TRIGGER_VIBE = 9;          // Vibe 9+ záská 10% slevu
     const DISCOUNT_NOTE_LINE = 'VIP VIBE BONUS: 10% sleva na celou útratu.';
-    const BASE_SPEND_PER_GUEST = 520;
-    const VIBE_SPEND_STEP = 0.08;
+    const BASE_SPEND_PER_GUEST = 520;          // Základ pro odhad ceny
+    const VIBE_SPEND_STEP = 0.08;             // Nárůst ceny za bod vibe
 
+    // ===== DOM REFERENCES =====
+    // Odkazy na všechny klíčové DOM prvky
     const cursorGlow = document.getElementById('cursor-glow');
     const canvas = document.getElementById('hero-canvas');
     const ctx = canvas.getContext('2d');
     const COLORS = ['rgba(123,63,255,', 'rgba(255,77,109,', 'rgba(200,169,110,', 'rgba(0,212,170,', 'rgba(255,110,180,'];
+    // Klíčové DOM prvky pro menu a karty
     const menuTabs = document.querySelectorAll('.tab-btn');
     const drinkCards = document.querySelectorAll('.drink-card[data-category]');
+
+    // ===== DRINK MODAL ELEMENTS =====
+    // Prvky modalu pro details napójů
+    const drinkModal = document.getElementById('drinkModal');
+    const drinkModalClose = document.getElementById('drinkModalClose');
+    const drinkModalTitle = document.getElementById('drinkModalTitle');
+    const drinkModalDesc = document.getElementById('drinkModalDesc');
+    const drinkModalBadge = document.getElementById('drinkModalBadge');
+    const drinkModalStrength = document.getElementById('drinkModalStrength');
+    const drinkModalPrice = document.getElementById('drinkModalPrice');
+    const drinkModalIngredients = document.getElementById('drinkModalIngredients');
+    const drinkModalVisual = document.getElementById('drinkModalVisual');
+    const drinkModalGlyph = document.getElementById('drinkModalGlyph');
+      const drinkStrengthSlider = document.getElementById('drinkStrengthSlider');
+    // ===== FORM ELEMENTS =====
+    // Prvky rezervačního formuláře
     const reservationForm = document.getElementById('reservationForm');
     const guestNameInput = document.getElementById('guestName');
     const guestPhoneInput = document.getElementById('guestPhone');
@@ -603,14 +655,104 @@
     const slotError = document.getElementById('slotError');
     const tableError = document.getElementById('tableError');
 
+    // ===== STATE =====
+    // Globální stav aplikáce
     const state = {
       selectedSlot: '',
       selectedTable: '',
       particles: [],
       reservations: []
     };
+    let lastFocusedDrinkCard = null;
 
+    // ===== DRINK DATA =====
+    // Mapa názvu piti na visulní prvky (barvy, glyfy)
+    const DRINK_VISUALS = {
+      'MonstRum': { tones: ['#2f1225', '#1f9a6f', '#94f240'], glyph: '🐉' },
+      'Shockbrero': { tones: ['#ff7a00', '#ffd36a', '#ff2f55'], glyph: '⚡' },
+      'Dark Velvet': { tones: ['#3f223f', '#7f1d4f', '#d23d6e'], glyph: '🍒' },
+      'Neon Opal': { tones: ['#0ea5e9', '#2563eb', '#57f5d4'], glyph: '💎' },
+      'Crimson Storm': { tones: ['#8a1d2d', '#ff3b5d', '#ff9f43'], glyph: '🔥' },
+      'Gold Rush': { tones: ['#a86d1a', '#ffd166', '#fff0b5'], glyph: '✨' },
+      'Shadow Master': { tones: ['#1a1a2e', '#3b2f5a', '#7ed6df'], glyph: '🌙' },
+      'Violet Ice': { tones: ['#6d28d9', '#a855f7', '#f472b6'], glyph: '❄️' },
+      'Smoke Signal': { tones: ['#374151', '#6b7280', '#98e2d2'], glyph: '💨' }
+    };
+
+    // Formátuje číselné označení síly nápo je na české etikety (0/5 - 5/5)
+    function strengthLabel(level) {
+      // Formátuje číselné označení síly nápoje na české etikety (0/5 - 5/5)
+      if (level <= 0) return '0/5 · Bez alkoholu';
+      if (level <= 2) return level + '/5 · Jemná';
+      if (level === 3) return level + '/5 · Střední';
+      if (level === 4) return level + '/5 · Silná';
+      return level + '/5 · Velmi silná';
+    }
+
+    // Nastaví barvy a glyf modalu podle názvu nápo je
+    function setDrinkVisual(name) {
+      // Nastaví barvy a glyf modalu podle názvu nápoje
+      const visual = DRINK_VISUALS[name] || { tones: ['#7b3fff', '#ff4d6d', '#c8a96e'], glyph: '🍸' };
+      drinkModalVisual.style.setProperty('--drink-tone-1', visual.tones[0]);
+      drinkModalVisual.style.setProperty('--drink-tone-2', visual.tones[1]);
+      drinkModalVisual.style.setProperty('--drink-tone-3', visual.tones[2]);
+      drinkModalGlyph.textContent = visual.glyph;
+    }
+
+    // ===== DRINK MODAL MANAGEMENT =====
+    // Otevře modal s detaily nápoje odvozenými přímo z vybrané karty
+    function openDrinkModal(card) {
+      lastFocusedDrinkCard = card instanceof HTMLElement ? card : null;
+      const name = card.querySelector('.drink-name')?.textContent.trim() || 'Drink';
+      const badge = card.querySelector('.drink-badge')?.textContent.trim() || 'Drink';
+      const description = card.querySelector('.drink-desc')?.textContent.trim() || '';
+      const ingredientsRaw = card.querySelector('.drink-sub')?.textContent.trim() || '';
+      const ingredients = ingredientsRaw.split('·').map(item => item.trim()).filter(Boolean);
+      const price = card.querySelector('.drink-price')?.textContent.trim() || '-';
+      const strengthDots = card.querySelectorAll('.abv-dot.filled').length;
+
+      drinkModalTitle.textContent = name;
+      drinkModalBadge.textContent = badge;
+      drinkModalDesc.textContent = description;
+      drinkStrengthSlider.value = strengthDots;
+      drinkModalStrength.textContent = strengthLabel(strengthDots);
+      drinkModalPrice.textContent = price;
+      while (drinkModalIngredients.firstChild) {
+        drinkModalIngredients.removeChild(drinkModalIngredients.firstChild);
+      }
+      ingredients.forEach(item => {
+        const chip = document.createElement('span');
+        chip.className = 'ingredient-chip';
+        chip.textContent = item;
+        drinkModalIngredients.appendChild(chip);
+      });
+      setDrinkVisual(name);
+
+      drinkModal.hidden = false;
+      drinkModal.classList.add('is-open');
+      drinkModal.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('modal-open');
+      drinkModalClose.focus();
+    }
+
+    // Zavře modal
+    function closeDrinkModal() {
+      // Zavře modal
+      drinkModal.classList.remove('is-open');
+      drinkModal.setAttribute('aria-hidden', 'true');
+      drinkModal.hidden = true;
+      document.body.classList.remove('modal-open');
+      if (lastFocusedDrinkCard && lastFocusedDrinkCard.isConnected) {
+        lastFocusedDrinkCard.focus();
+      }
+      lastFocusedDrinkCard = null;
+    }
+
+    // ===== API & DATA LOADING =====
+    // API wrapper - vrací parsed JSON nebo vyhodí chybu
+    // ===== API & DATA LOADING =====
     async function apiRequest(url, options = {}) {
+      // API wrapper - vrací parsed JSON nebo vyhází chybu
       const response = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
@@ -627,17 +769,25 @@
       return payload;
     }
 
+    // Načte všechny rezervace ze serveru
     async function loadReservations() {
+      // Načte všechny rezervace ze serveru
       const payload = await apiRequest(API_BASE);
       state.reservations = payload.reservations || [];
     }
 
+    // Zobrazuje zprávu o stavu výsledku (chyba, úspěch)
     function setStatus(message, type = '') {
+      // Zobrazuje zprávu o stavu výsledku (chyba, úspěch)
       reservationStatus.textContent = message;
       reservationStatus.className = type ? 'reservation-status ' + type : 'reservation-status';
     }
 
+    // ===== DATE & TIME UTILITIES =====
+    // Nastaví minimální datum na zítra
+    // ===== DATE & TIME UTILITIES =====
     function setMinDate() {
+      // Nastaví minimální datum na zítra
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       reservationDateInput.min = today.toISOString().split('T')[0];
@@ -648,7 +798,9 @@
       }
     }
 
+    // Formátuje datum pro zobrazení
     function formatDate(dateValue) {
+      // Formátuje datum pro zobrazení
       if (!dateValue) return 'Vyber datum';
       return new Intl.DateTimeFormat('cs-CZ', {
         weekday: 'long',
@@ -657,7 +809,9 @@
       }).format(new Date(dateValue + 'T12:00:00'));
     }
 
+    // Vrátí otevící dobu pro daný den (v závislosti na dni týdníku)
     function getOpeningHours(dateValue) {
+      // Vrací otviracích dobu pro daný den (v závislosti na dni týdne)
       const date = new Date(dateValue + 'T12:00:00');
       const day = date.getDay();
       if (day === 0) return { start: 18, end: 24, label: 'Neděle 18:00-00:00' };
@@ -665,12 +819,16 @@
       return { start: 17, end: 25, label: 'Po-Čt 17:00-01:00' };
     }
 
+    // Formátuje čás (hodinu) na HH:00 formát
     function formatHour(hour) {
+      // Formátuje čas (hodinu) na HH:00 formát
       const normalized = ((hour % 24) + 24) % 24;
       return String(normalized).padStart(2, '0') + ':00';
     }
 
+    // Generuje dostupné sloty (časové intervaly) pro dané datum
     function getSlotsForDate(dateValue) {
+      // Generuje dostupné sloty (časové intervaly) pro dané datum
       if (!dateValue) return [];
       const hours = getOpeningHours(dateValue);
       const slots = [];
@@ -680,15 +838,23 @@
       return slots;
     }
 
+    // ===== RESERVATION AVAILABILITY =====
+    // Kontroluje, zda je stůl v daném čase už zarezervován
+    // ===== RESERVATION AVAILABILITY =====
     function isReserved(dateValue, slotValue, tableId) {
+      // Kontroluje, zda je stůl v daném čase již zarezervován
       return state.reservations.some(item => item.date === dateValue && item.slot === slotValue && item.tableId === tableId);
     }
 
+    // Vrátí vybraný stůl z TABLES pole
     function getSelectedTable() {
+      // Vrací vybraný stůl z TABLES pole
       return TABLES.find(table => table.id === state.selectedTable);
     }
 
+    // Formátuje cenu na český formát (CZK)
     function formatCurrency(amount) {
+      // Formátuje cenu na český formát (CZK)
       return new Intl.NumberFormat('cs-CZ', {
         style: 'currency',
         currency: 'CZK',
@@ -696,39 +862,54 @@
       }).format(Math.max(0, Math.round(amount || 0)));
     }
 
+    // ===== FORM VALIDATION =====
+    // Nastaví chybovou zprávu a vizuálně označí pole
+    // ===== FORM VALIDATION =====
     function setFieldError(input, errorEl, message) {
+      // Nastaví chybovou zprávu a vizuálně označí pole
       const field = input.closest('.field');
       if (field) field.classList.add('has-error');
       input.setAttribute('aria-invalid', 'true');
       errorEl.textContent = message;
     }
 
+    // Vymaže chybovou zprávu z pole
     function clearFieldError(input, errorEl) {
+      // Vymaže chybovou zprávu z pole
       const field = input.closest('.field');
       if (field) field.classList.remove('has-error');
       input.removeAttribute('aria-invalid');
       errorEl.textContent = '';
     }
 
+    // Vymaže chybovou zprávu z bloku (slot/table)
     function clearBlockError(blockEl, errorEl) {
+      // Vymaže chybovou zprávu z bloku (slot/table)
       blockEl.classList.remove('has-error');
       errorEl.textContent = '';
     }
 
+    // Nastaví chybovou zprávu na blok
     function setBlockError(blockEl, errorEl, message) {
+      // Nastaví chybovou zprávu na blok
       blockEl.classList.add('has-error');
       errorEl.textContent = message;
     }
 
+    // Validační funkce pro e-mail a telefon
     function isValidEmail(value) {
+      // Validační funkce pro e-mail
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
     }
 
     function isValidPhone(value) {
+      // Validační funkce pro telefon
       return /^[+\d][\d\s]{7,}$/.test(value);
     }
 
+    // Vymaže všechny chybové zprávy z formuláře
     function clearValidation() {
+      // Vymaže všechny chybové zprávy z formuláře
       clearFieldError(guestNameInput, guestNameError);
       clearFieldError(guestPhoneInput, guestPhoneError);
       clearFieldError(guestEmailInput, guestEmailError);
@@ -738,7 +919,9 @@
       clearBlockError(document.querySelector('.table-block'), tableError);
     }
 
+    // Ověří celý formulář - kontaktní údaje, datum, tabulka
     function validateReservationForm({ name, phone, email, guests, dateValue, table }) {
+      // Ověří celý formulář - kontaktní údaje, datum, tabulka
       clearValidation();
       let firstInvalid = null;
 
@@ -1019,6 +1202,56 @@
       });
     });
 
+    drinkCards.forEach(card => {
+      card.classList.add('is-clickable');
+      card.setAttribute('role', 'button');
+      card.setAttribute('tabindex', '0');
+      card.setAttribute('aria-label', 'Otevřít detail drinku ' + (card.querySelector('.drink-name')?.textContent.trim() || ''));
+      card.addEventListener('click', () => openDrinkModal(card));
+      card.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          openDrinkModal(card);
+        }
+      });
+    });
+
+    const drinkModalDialog = drinkModal.querySelector('.drink-modal-dialog');
+    const drinkModalBackdrop = drinkModal.querySelector('.drink-modal-backdrop');
+
+    drinkModalBackdrop.addEventListener('click', closeDrinkModal);
+    drinkModalDialog.addEventListener('click', event => {
+      event.stopPropagation();
+    });
+    drinkModal.addEventListener('click', event => {
+      if (!event.target.closest('.drink-modal-dialog')) {
+        closeDrinkModal();
+      }
+    });
+    drinkModalClose.addEventListener('click', closeDrinkModal);
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && drinkModal.classList.contains('is-open')) {
+        closeDrinkModal();
+        return;
+      }
+      if (event.key === 'Tab' && drinkModal.classList.contains('is-open')) {
+        const focusable = drinkModal.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (!focusable.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    });
+
     const revealObserver = new IntersectionObserver(entries => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -1141,37 +1374,45 @@
 
     reservationForm.addEventListener('submit', async event => {
       event.preventDefault();
-      const guests = Number(guestCountInput.value);
-      const name = document.getElementById('guestName').value.trim();
-      const phone = document.getElementById('guestPhone').value.trim();
-      const email = document.getElementById('guestEmail').value.trim();
-      const note = reservationNoteInput.value.trim();
-      const drink = reservationDrinkInput.value.trim();
-      const vibe = Number(plannedVibeInput.value || 5);
-      const hasDiscount = vibe >= DISCOUNT_TRIGGER_VIBE;
-      const noteWithDiscount = hasDiscount
-        ? (note.includes(DISCOUNT_NOTE_LINE) ? note : (note ? note + '\n' + DISCOUNT_NOTE_LINE : DISCOUNT_NOTE_LINE))
-        : note;
-      const dateValue = reservationDateInput.value;
-      const table = getSelectedTable();
-
-      if (!validateReservationForm({ name, phone, email, guests, dateValue, table })) {
-        setStatus('Prosím oprav označená pole a zkus to znovu.', 'error');
-        return;
-      }
-      if (table.seats < guests) {
-        setBlockError(document.querySelector('.table-block'), tableError, 'Vybraný stůl je pro zadaný počet hostů příliš malý.');
-        setStatus('Vybraný stůl je pro zadaný počet hostů příliš malý.', 'error');
-        return;
-      }
-      if (isReserved(dateValue, state.selectedSlot, state.selectedTable)) {
-        setBlockError(document.querySelector('.table-block'), tableError, 'Tenhle stůl je v daném čase už obsazený.');
-        setStatus('Tenhle stůl je v daném čase už obsazený. Vyber jiný slot nebo místo.', 'error');
-        refreshReservationUI();
-        return;
-      }
-
+      
+      // Loading state
+      const submitBtn = reservationForm.querySelector('button[type="submit"]');
+      const originalText = submitBtn.textContent;
+      const originalDisabled = submitBtn.disabled;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Odesílám...';
+      
       try {
+        const guests = Number(guestCountInput.value);
+        const name = document.getElementById('guestName').value.trim();
+        const phone = document.getElementById('guestPhone').value.trim();
+        const email = document.getElementById('guestEmail').value.trim();
+        const note = reservationNoteInput.value.trim();
+        const drink = reservationDrinkInput.value.trim();
+        const vibe = Number(plannedVibeInput.value || 5);
+        const hasDiscount = vibe >= DISCOUNT_TRIGGER_VIBE;
+        const noteWithDiscount = hasDiscount
+          ? (note.includes(DISCOUNT_NOTE_LINE) ? note : (note ? note + '\n' + DISCOUNT_NOTE_LINE : DISCOUNT_NOTE_LINE))
+          : note;
+        const dateValue = reservationDateInput.value;
+        const table = getSelectedTable();
+
+        if (!validateReservationForm({ name, phone, email, guests, dateValue, table })) {
+          setStatus('Prosím oprav označená pole a zkus to znovu.', 'error');
+          return;
+        }
+        if (table.seats < guests) {
+          setBlockError(document.querySelector('.table-block'), tableError, 'Vybraný stůl je pro zadaný počet hostů příliš malý.');
+          setStatus('Vybraný stůl je pro zadaný počet hostů příliš malý.', 'error');
+          return;
+        }
+        if (isReserved(dateValue, state.selectedSlot, state.selectedTable)) {
+          setBlockError(document.querySelector('.table-block'), tableError, 'Tenhle stůl je v daném čase už obsazený.');
+          setStatus('Tenhle stůl je v daném čase už obsazený. Vyber jiný slot nebo místo.', 'error');
+          refreshReservationUI();
+          return;
+        }
+
         await apiRequest(API_BASE, {
           method: 'POST',
           body: JSON.stringify({
@@ -1188,28 +1429,30 @@
           })
         });
         await loadReservations();
+        reservationForm.reset();
+        guestCountInput.value = '4';
+        reservationDrinkInput.value = 'MonstRum';
+        plannedVibeInput.value = '5';
+        setMinDate();
+        state.selectedSlot = '';
+        state.selectedTable = '';
+        clearValidation();
+        updateVibeUI();
+        refreshReservationUI();
+        setStatus(
+          hasDiscount
+            ? 'Rezervace byla uložená + přidal jsem poznámku o 10% slevě (vibe 9+).'
+            : 'Rezervace byla uložená do databáze. Najdeš ji v přehledu i na admin stránce.',
+          'success'
+        );
       } catch (error) {
         setStatus(error.message, 'error');
         refreshReservationUI();
-        return;
+      } finally {
+        // Info: Obnovení submit buttonu
+        submitBtn.disabled = originalDisabled;
+        submitBtn.textContent = originalText;
       }
-
-      reservationForm.reset();
-      guestCountInput.value = '4';
-      reservationDrinkInput.value = 'MonstRum';
-      plannedVibeInput.value = '5';
-      setMinDate();
-      state.selectedSlot = '';
-      state.selectedTable = '';
-      clearValidation();
-      updateVibeUI();
-      refreshReservationUI();
-      setStatus(
-        hasDiscount
-          ? 'Rezervace byla uložená + přidal jsem poznámku o 10% slevě (vibe 9+).'
-          : 'Rezervace byla uložená do databáze. Najdeš ji v přehledu i na admin stránce.',
-        'success'
-      );
     });
 
     sizeCanvas();
@@ -1233,6 +1476,8 @@
         setStatus('Server pro rezervace zatím neběží. Spusť prosím localhost server.', 'error');
       }
     }
+
+    closeDrinkModal();
 
     initReservationSystem();
   </script>

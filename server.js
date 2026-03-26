@@ -1,12 +1,37 @@
+// ===== BarX Reservation Server =====
+// REST API pro správu rezervací s perzistencí do JSON
+// Endpoints: GET/POST /api/reservations, PATCH/DELETE /api/reservations/:id
+
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { randomUUID } = require('crypto');
 
+// ===== CONSTANTS & CONFIG =====
 const PORT = Number(process.env.PORT) || 3000;
 const ROOT_DIR = __dirname;
 const DATA_FILE = path.join(ROOT_DIR, 'reservations.json');
+const LOG_FILE = path.join(ROOT_DIR, 'server.log');
 
+// Validační pravidla
+const VALIDATION = {
+  MAX_GUESTS: 100,            // Maximálně hostů najednou
+  AUTO_COMPLETE_DELAY_MS: 60 * 60 * 1000, // 1 hodina
+  AUTO_COMPLETE_INTERVAL_MS: 5 * 60 * 1000, // Background job každých 5 minut
+  MAX_PAYLOAD_SIZE: 1_000_000 // 1 MB
+};
+
+// Regex patterny
+const PATTERNS = {
+  DATE: /^\d{4}-\d{2}-\d{2}$/,
+  TIME: /^\d{2}:00$/,
+  TIME_FULL: /^\d{2}:\d{2}$/,
+  UUID: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+  EMAIL: /^[^\s@]{1,64}@[^\s@]{1,64}\.[^\s@]{2,}$/,
+  PHONE: /^[+\d][\d\s]{7,}$/
+};
+
+// MIME typy pro statické soubory
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
@@ -21,6 +46,7 @@ const MIME_TYPES = {
   '.ico': 'image/x-icon'
 };
 
+// Dostupné stoly s IDs a počtem míst
 const TABLES = [
   { id: 'bar-2', seats: 2 },
   { id: 'window-4', seats: 4 },
@@ -28,8 +54,12 @@ const TABLES = [
   { id: 'booth-6', seats: 6 },
   { id: 'vip-8', seats: 8 }
 ];
+
+// Povolené stavy rezervace
 const RESERVATION_STATUSES = new Set(['new', 'called', 'confirmed', 'done', 'completed']);
 
+// Převede datum a slot na počet ms od epoch
+// Používá se pro kontrolu, zda uplynul čas na auto-kompletaci status
 function getReservationStartMs(item) {
   const dateValue = String(item.date || '');
   const slotValue = String(item.slot || '');
@@ -39,13 +69,15 @@ function getReservationStartMs(item) {
   return Number.isFinite(ms) ? ms : null;
 }
 
+// Auto-kompletace: pokud od začátku rezervace uplynula 1 hodina, set status na 'completed'
+// Vrací { next (upravená pole), changed (bool) }
 function autoCompleteExpiredReservations(items) {
   const nowMs = Date.now();
   let changed = false;
   const next = items.map(item => {
     const startMs = getReservationStartMs(item);
     if (startMs === null) return item;
-    if (nowMs < startMs + (60 * 60 * 1000)) return item;
+    if (nowMs < startMs + VALIDATION.AUTO_COMPLETE_DELAY_MS) return item;
     if (String(item.status || 'new').trim() === 'completed') return item;
 
     changed = true;
@@ -55,9 +87,11 @@ function autoCompleteExpiredReservations(items) {
       updatedAt: new Date().toISOString()
     };
   });
+
   return { next, changed };
 }
 
+// Odeslání JSON odpovědi s CORS headerem
 function sendJson(res, statusCode, payload) {
   res.writeHead(statusCode, {
     'Content-Type': 'application/json; charset=utf-8',
@@ -68,6 +102,7 @@ function sendJson(res, statusCode, payload) {
   res.end(JSON.stringify(payload));
 }
 
+// Odeslání textové odpovědi
 function sendText(res, statusCode, message) {
   res.writeHead(statusCode, { 'Content-Type': 'text/plain; charset=utf-8' });
   res.end(message);
@@ -92,8 +127,27 @@ async function readReservations() {
   }
 }
 
+// Atomicky zapíše reservace (nejdříve do temp souboru, pak přejmenuje)
+// Ochrání proti race conditions
 async function writeReservations(reservations) {
-  await fs.promises.writeFile(DATA_FILE, JSON.stringify(reservations, null, 2) + '\n', 'utf8');
+  const tempFile = DATA_FILE + '.tmp';
+  const content = JSON.stringify(reservations, null, 2) + '\n';
+  try {
+    await fs.promises.writeFile(tempFile, content, 'utf8');
+    await fs.promises.rename(tempFile, DATA_FILE);
+  } catch (error) {
+    // Vyčisti temp file pokud se něco stalo
+    try { await fs.promises.unlink(tempFile); } catch { }
+    throw error;
+  }
+}
+
+// Error logging do souboru
+function logError(error, context = '') {
+  const timestamp = new Date().toISOString();
+  const message = `[${timestamp}] ${context}\nError: ${error.message}\nStack: ${error.stack}\n---\n`;
+  fs.appendFile(LOG_FILE, message, () => {}); // Fire and forget
+  console.error(message);
 }
 
 function getBody(req) {
@@ -101,7 +155,7 @@ function getBody(req) {
     let data = '';
     req.on('data', chunk => {
       data += chunk;
-      if (data.length > 1_000_000) {
+      if (data.length > VALIDATION.MAX_PAYLOAD_SIZE) {
         req.destroy();
         reject(new Error('Payload too large'));
       }
@@ -121,14 +175,22 @@ function getBody(req) {
   });
 }
 
+// Validační funkce
 function isValidEmail(email) {
-  return typeof email === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  if (typeof email !== 'string') return false;
+  return PATTERNS.EMAIL.test(email);
 }
 
 function isValidPhone(phone) {
-  return typeof phone === 'string' && /^[+\d][\d\s]{7,}$/.test(phone);
+  if (typeof phone !== 'string') return false;
+  return PATTERNS.PHONE.test(phone);
 }
 
+function isValidUUID(id) {
+  return typeof id === 'string' && PATTERNS.UUID.test(id);
+}
+
+// Ověří všechna povinná pole a jejich validitu
 function validateReservation(payload) {
   const requiredFields = ['name', 'phone', 'email', 'guests', 'date', 'slot', 'tableId', 'vibe'];
   for (const field of requiredFields) {
@@ -141,17 +203,19 @@ function validateReservation(payload) {
   const vibe = Number(payload.vibe);
   const table = TABLES.find(item => item.id === payload.tableId);
   if (!table) return 'Neplatný stůl.';
-  if (!Number.isInteger(guests) || guests < 1) return 'Neplatný počet hostů.';
+  if (!Number.isInteger(guests) || guests < 1 || guests > VALIDATION.MAX_GUESTS) return 'Počet hostů musí být 1-' + VALIDATION.MAX_GUESTS + '.';
   if (!Number.isInteger(vibe) || vibe < 1 || vibe > 10) return 'Neplatná hodnota vibe (1-10).';
   if (guests > table.seats) return 'Vybraný stůl nemá dost míst.';
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(payload.date)) return 'Neplatné datum.';
-  if (!/^\d{2}:00$/.test(payload.slot)) return 'Neplatný čas.';
+  if (!PATTERNS.DATE.test(payload.date)) return 'Neplatné datum.';
+  if (!PATTERNS.TIME.test(payload.slot)) return 'Neplatný čas.';
   if (!isValidEmail(payload.email)) return 'Neplatný e-mail.';
   if (!isValidPhone(payload.phone)) return 'Neplatné telefonní číslo.';
   return null;
 }
 
+// Normalizuje příchozí data do standardního formátu rezervace
 function normalizeReservation(payload) {
+  const drink = typeof payload.drink === 'string' ? payload.drink.trim() : '';
   return {
     id: randomUUID(),
     name: String(payload.name).trim(),
@@ -164,11 +228,12 @@ function normalizeReservation(payload) {
     vibe: Number(payload.vibe),
     status: 'new',
     note: payload.note ? String(payload.note).trim() : '',
-    drink: payload.drink ? String(payload.drink).trim() : '',
+    drink: drink,
     createdAt: new Date().toISOString()
   };
 }
 
+// Ověří PATCH request - musí obsahovat status a/nebo note
 function validatePatchPayload(payload) {
   const hasStatus = Object.prototype.hasOwnProperty.call(payload, 'status');
   const hasNote = Object.prototype.hasOwnProperty.call(payload, 'note');
@@ -179,6 +244,7 @@ function validatePatchPayload(payload) {
   return null;
 }
 
+// Seřadí rezervace podle data a času (vzestupně)
 function sortReservations(items) {
   return [...items].sort((a, b) => {
     const left = new Date(a.date + 'T' + a.slot + ':00');
@@ -187,7 +253,10 @@ function sortReservations(items) {
   });
 }
 
+// ===== API REQUEST HANDLER =====
+// Zpracovává všechny /api/* requesty
 async function handleApi(req, res, pathname) {
+  // CORS preflight
   if (req.method === 'OPTIONS') {
     res.writeHead(204, {
       'Access-Control-Allow-Origin': '*',
@@ -198,16 +267,19 @@ async function handleApi(req, res, pathname) {
     return;
   }
 
+  // GET /api/reservations - Vrátí všechny rezervace (bez auto-kompletace - běží na pozadí)
   if (pathname === '/api/reservations' && req.method === 'GET') {
-    const reservations = await readReservations();
-    const { next, changed } = autoCompleteExpiredReservations(reservations);
-    if (changed) {
-      await writeReservations(next);
+    try {
+      const reservations = await readReservations();
+      sendJson(res, 200, { reservations: sortReservations(reservations) });
+    } catch (error) {
+      logError(error, 'GET /api/reservations');
+      sendJson(res, 500, { error: 'Chyba při čtení dat.' });
     }
-    sendJson(res, 200, { reservations: sortReservations(next) });
     return;
   }
 
+  // POST /api/reservations - Vytvoří novou rezervaci
   if (pathname === '/api/reservations' && req.method === 'POST') {
     const payload = await getBody(req);
     const error = validateReservation(payload);
@@ -230,8 +302,13 @@ async function handleApi(req, res, pathname) {
     return;
   }
 
+  // DELETE /api/reservations/:id - Smaže rezervaci
   if (pathname.startsWith('/api/reservations/') && req.method === 'DELETE') {
     const id = pathname.split('/').pop();
+    if (!isValidUUID(id)) {
+      sendJson(res, 400, { error: 'Neplatné ID.' });
+      return;
+    }
     const reservations = await readReservations();
     const nextReservations = reservations.filter(item => item.id !== id);
     if (nextReservations.length === reservations.length) {
@@ -243,8 +320,13 @@ async function handleApi(req, res, pathname) {
     return;
   }
 
+  // PATCH /api/reservations/:id - Aktualizuje status nebo poznámku
   if (pathname.startsWith('/api/reservations/') && req.method === 'PATCH') {
     const id = pathname.split('/').pop();
+    if (!isValidUUID(id)) {
+      sendJson(res, 400, { error: 'Neplatné ID.' });
+      return;
+    }
     const payload = await getBody(req);
     const patchError = validatePatchPayload(payload);
     if (patchError) {
@@ -275,6 +357,8 @@ async function handleApi(req, res, pathname) {
   sendJson(res, 404, { error: 'API endpoint nebyl nalezen.' });
 }
 
+// ===== STATIC FILE HANDLER =====
+// Serviruje HTML, CSS, JS a ostatní statické soubory
 async function handleStatic(req, res, pathname) {
   const safePath = pathname === '/' ? '/index.html' : pathname;
   const normalized = path.normalize(safePath).replace(/^(\.\.[/\\])+/, '');
@@ -300,6 +384,8 @@ async function handleStatic(req, res, pathname) {
   }
 }
 
+// ===== HTTP SERVER =====
+// Hlavní server - routuje API a static requesty
 const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, 'http://localhost');
@@ -310,12 +396,38 @@ const server = http.createServer(async (req, res) => {
     }
     await handleStatic(req, res, pathname);
   } catch (error) {
-    sendJson(res, 500, { error: 'Interní chyba serveru.', details: error.message });
+    logError(error, 'HTTP Request Handler');
+    sendJson(res, 500, { error: 'Interní chyba serveru.' });
   }
 });
 
+// ===== BACKGROUND JOBS =====
+// Auto-kompletace na pozadí (každých 5 minut místo na každý GET)
+let autoCompleteRunning = false;
+setInterval(async () => {
+  if (autoCompleteRunning) return; // Zabrání souběžným voláním
+  autoCompleteRunning = true;
+  try {
+    const reservations = await readReservations();
+    const { next, changed } = autoCompleteExpiredReservations(reservations);
+    if (changed) {
+      await writeReservations(next);
+      console.log(`[Auto-Complete] ${new Date().toISOString()} - Automaticky aktualizovány expirované rezervace`);
+    }
+  } catch (error) {
+    logError(error, 'Background Auto-Complete Job');
+  } finally {
+    autoCompleteRunning = false;
+  }
+}, VALIDATION.AUTO_COMPLETE_INTERVAL_MS);
+
+// Spusť server
 ensureDataFile().then(() => {
   server.listen(PORT, () => {
-    console.log('BarX server running at http://localhost:' + PORT);
+    console.log(`[${new Date().toISOString()}] BarX server running at http://localhost:${PORT}`);
+    console.log(`Background auto-complete running every ${VALIDATION.AUTO_COMPLETE_INTERVAL_MS / 1000}s`);
   });
+}).catch(error => {
+  logError(error, 'Server Startup');
+  process.exit(1);
 });
