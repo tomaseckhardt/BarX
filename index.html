@@ -50,11 +50,6 @@
           "opens": "18:00",
           "closes": "00:00"
         }
-          // Slider event listener pro aktualizaci textu síly
-          drinkStrengthSlider.addEventListener('input', function() {
-            drinkModalStrength.textContent = strengthLabel(Number(this.value));
-          });
-
       ],
       "sameAs": [
         "https://instagram.com/barx",
@@ -97,7 +92,7 @@
     <div class="hero-ring ring-2" aria-hidden="true"></div>
     <div class="hero-ring ring-3" aria-hidden="true"></div>
     <p class="hero-eyebrow">Craft Cocktail Bar · Praha</p>
-    <h1>BAR X</h1>
+    <h1 aria-label="BarX">BAR X</h1>
     <p class="hero-sub">Kde každý drink vypráví příběh. Originální recepty, prémiové ingredience a atmosféra, kterou nezapomeneš.</p>
     <div class="hero-actions">
       <a href="#menu" class="btn btn-primary">Prozkoumat menu</a>
@@ -668,6 +663,7 @@
       particles: [],
       reservations: []
     };
+    let lastFocusedDrinkCard = null;
 
     // ===== DRINK DATA =====
     // Mapa názvu piti na visulní prvky (barvy, glyfy)
@@ -777,6 +773,7 @@
     // ===== DRINK MODAL MANAGEMENT =====
     // Otevře modal s detaily nápoje (s fallback daty z DRINK_DETAILS)
     function openDrinkModal(card) {
+      lastFocusedDrinkCard = card instanceof HTMLElement ? card : null;
       const name = card.querySelector('.drink-name')?.textContent.trim() || 'Drink';
       const details = DRINK_DETAILS[name] || {};
       const badge = details.badge || card.querySelector('.drink-badge')?.textContent.trim() || 'Drink';
@@ -796,9 +793,18 @@
       drinkStrengthSlider.value = strengthDots;
       drinkModalStrength.textContent = strengthLabel(strengthDots);
       drinkModalPrice.textContent = price;
-      drinkModalIngredients.innerHTML = ingredients.map(item => '<span class="ingredient-chip">' + item + '</span>').join('');
+      while (drinkModalIngredients.firstChild) {
+        drinkModalIngredients.removeChild(drinkModalIngredients.firstChild);
+      }
+      ingredients.forEach(item => {
+        const chip = document.createElement('span');
+        chip.className = 'ingredient-chip';
+        chip.textContent = item;
+        drinkModalIngredients.appendChild(chip);
+      });
       setDrinkVisual(name);
 
+      drinkModal.hidden = false;
       drinkModal.classList.add('is-open');
       drinkModal.setAttribute('aria-hidden', 'false');
       document.body.classList.add('modal-open');
@@ -810,7 +816,12 @@
       // Zavře modal
       drinkModal.classList.remove('is-open');
       drinkModal.setAttribute('aria-hidden', 'true');
+      drinkModal.hidden = true;
       document.body.classList.remove('modal-open');
+      if (lastFocusedDrinkCard && lastFocusedDrinkCard.isConnected) {
+        lastFocusedDrinkCard.focus();
+      }
+      lastFocusedDrinkCard = null;
     }
 
     // ===== API & DATA LOADING =====
@@ -1297,6 +1308,23 @@
     document.addEventListener('keydown', event => {
       if (event.key === 'Escape' && drinkModal.classList.contains('is-open')) {
         closeDrinkModal();
+        return;
+      }
+      if (event.key === 'Tab' && drinkModal.classList.contains('is-open')) {
+        const focusable = drinkModal.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (!focusable.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
       }
     });
 
@@ -1526,41 +1554,6 @@
     }
 
     closeDrinkModal();
-
-    // Focus management - Escape key pro zavření modalu
-    drinkModal.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape' && drinkModal.classList.contains('is-open')) {
-        e.preventDefault();
-        closeDrinkModal();
-      }
-    });
-
-    // Tab key focus trap - cyklení fokus v modálu
-    drinkModal.addEventListener('keydown', function(e) {
-      if (e.key === 'Tab' && drinkModal.classList.contains('is-open')) {
-        // Najdi všechny focusable prvky
-        const focusableElements = drinkModal.querySelectorAll(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        );
-        const firstElement = focusableElements[0];
-        const lastElement = focusableElements[focusableElements.length - 1];
-        const activeElement = document.activeElement;
-
-        // Shift + Tab - jdi na poslední prvek
-        if (e.shiftKey) {
-          if (activeElement === firstElement) {
-            e.preventDefault();
-            lastElement.focus();
-          }
-        } else {
-          // Tab - jdi na první prvek, pokud jsem na posledním
-          if (activeElement === lastElement) {
-            e.preventDefault();
-            firstElement.focus();
-          }
-        }
-      }
-    });
 
     initReservationSystem();
   </script>

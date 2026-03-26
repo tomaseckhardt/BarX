@@ -70,3 +70,44 @@ test('zakladni funkcnost bez potvrzeni rezervace', async ({ page }) => {
   await pause(page);
   await expect(page.locator('#cardsView')).toHaveClass(/is-active/);
 });
+
+test('drink modal je ovladatelny klavesnici i mysi', async ({ page }) => {
+  test.setTimeout(90_000);
+
+  await page.goto('/');
+  await pause(page);
+
+  const monStrumCard = page.locator('.drink-card:has-text("MonstRum")').first();
+  await expect(monStrumCard).toBeVisible();
+
+  await monStrumCard.click();
+  await pause(page);
+
+  const modal = page.locator('#drinkModal');
+  await expect(modal).toHaveClass(/is-open/);
+  await expect(page.locator('#drinkModalTitle')).toHaveText('MonstRum');
+  await expect(page.locator('#drinkModalPrice')).toContainText('Kč');
+  await expect(page.locator('#drinkModalStrength')).toContainText('/5');
+
+  await page.keyboard.press('Escape');
+  await pause(page);
+  await expect(modal).not.toHaveClass(/is-open/);
+
+  await monStrumCard.focus();
+  await page.keyboard.press('Enter');
+  await pause(page);
+  await expect(modal).toHaveClass(/is-open/);
+
+  await page.locator('.drink-modal-backdrop').evaluate(el => el.click());
+  await pause(page);
+  await expect(modal).not.toHaveClass(/is-open/);
+
+  await monStrumCard.focus();
+  await page.keyboard.press('Space');
+  await pause(page);
+  await expect(modal).toHaveClass(/is-open/);
+
+  await page.locator('#drinkModalClose').click();
+  await pause(page);
+  await expect(modal).not.toHaveClass(/is-open/);
+});
