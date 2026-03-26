@@ -59,7 +59,7 @@ const TABLES = [
 const RESERVATION_STATUSES = new Set(['new', 'called', 'confirmed', 'done', 'completed']);
 
 // Převede datum a slot na počet ms od epoch
-// Používá se pro kontrolu, zda uplynul čas na auto-korpmletaci status
+// Používá se pro kontrolu, zda uplynul čas na auto-kompletaci status
 function getReservationStartMs(item) {
   const dateValue = String(item.date || '');
   const slotValue = String(item.slot || '');
@@ -405,14 +405,14 @@ const server = http.createServer(async (req, res) => {
 // Auto-kompletace na pozadí (každých 5 minut místo na každý GET)
 let autoCompleteRunning = false;
 setInterval(async () => {
-  if (autoCompleteRunning) return; // Zbrání souběžným voláním
+  if (autoCompleteRunning) return; // Zabrání souběžným voláním
   autoCompleteRunning = true;
   try {
     const reservations = await readReservations();
     const { next, changed } = autoCompleteExpiredReservations(reservations);
     if (changed) {
       await writeReservations(next);
-      console.log(`[Auto-Complete] ${new Date().toISOString()} - Aktualizováno ${reservations.length - next.length} rezervací`);
+      console.log(`[Auto-Complete] ${new Date().toISOString()} - Automaticky aktualizovány expirované rezervace`);
     }
   } catch (error) {
     logError(error, 'Background Auto-Complete Job');

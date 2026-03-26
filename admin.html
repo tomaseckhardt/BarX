@@ -149,7 +149,7 @@
     // Veškeré stránkové stavy
     let reservations = [];          // Veškeré rezervace ze serveru
     let currentView = 'table';      // Aktuální pohled (table/cards)
-    let dateSortMode = 'none';      // Modo řazení data/času: 'none', 'asc', 'desc'
+    let dateSortMode = 'none';      // Režim řazení data/času: 'none', 'asc', 'desc'
 
     // Aktualizuje UI indikátor řazení data (•/↑/↓)
     function updateDateSortUI() {
@@ -203,7 +203,7 @@
       return map[normalizeStatus(status)] || 'nova';
     }
 
-    // Zobrazuje zprávu o statusu (erfolg/error/warning)
+    // Zobrazuje zprávu o statusu (success/error/warning)
     function setStatus(message, type = '') {
       statusEl.textContent = message;
       statusEl.className = type ? 'status ' + type : 'status';
