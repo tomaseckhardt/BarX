@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="BarX Admin - přehled, filtrování a správa rezervací." />
+  <meta name="robots" content="noindex,nofollow" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="cs_CZ" />
+  <meta property="og:site_name" content="BarX" />
+  <meta property="og:title" content="BarX Admin" />
+  <meta property="og:description" content="Interní administrační přehled rezervací pro BarX." />
+  <title>BarX Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Raleway:wght@400;500;600;700&display=swap" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Raleway:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="preload" as="style" href="styles.css" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="admin-page">
+  <div class="shell">
+    <header class="topbar">
+      <div>
+        <h1>BarX Admin</h1>
+        <p>Přehled všech rezervací uložených v místním JSON souboru. Stránka čte stejná data jako formulář na hlavním webu.</p>
+      </div>
+      <div class="actions">
+        <a class="btn" href="/index.html" data-tip="Přejít na hlavní web">Zpět na web</a>
+        <button id="refreshBtn" class="btn btn-primary" type="button" data-tip="Znovu načíst rezervace ze serveru">Obnovit data</button>
+      </div>
+    </header>
+
+    <section class="panel">
+      <div class="stats">
+        <div class="stat"><span>Celkem rezervací</span><strong id="statTotal">0</strong></div>
+        <div class="stat"><span>Dnešní rezervace</span><strong id="statToday">0</strong></div>
+        <div class="stat"><span>Nejčastější drink</span><strong id="statDrink">-</strong></div>
+        <div class="stat"><span>Hostů celkem</span><strong id="statGuests">0</strong></div>
+      </div>
+      <div class="toolbar">
+        <div class="search">
+          <input id="searchInput" type="search" aria-label="Hledat rezervace" placeholder="Hledat podle jména, drinku, telefonu nebo stolu" />
+        </div>
+        <div class="filter-controls" aria-label="Filtr a razeni rezervaci">
+          <select id="statusFilter" class="toolbar-select" aria-label="Filtr podle stavu" data-tip="Filtr podle stavu rezervace">
+            <option value="all">Vsechny stavy</option>
+            <option value="new">Nove</option>
+            <option value="called">Volano</option>
+            <option value="confirmed">Potvrzene</option>
+            <option value="no-show">No-show</option>
+            <option value="done">Hotovo</option>
+          </select>
+          <select id="sortBy" class="toolbar-select" aria-label="Razeni rezervaci" data-tip="Razeni vysledku">
+            <option value="date-desc">Nejnovejsi termin</option>
+            <option value="date-asc">Nejstarsi termin</option>
+            <option value="created-desc">Nejnovejsi vytvoreni</option>
+            <option value="created-asc">Nejstarsi vytvoreni</option>
+            <option value="name-asc">Jmeno A-Z</option>
+            <option value="guests-desc">Hoste od nejvice</option>
+            <option value="guests-asc">Hoste od nejmene</option>
+          </select>
+        </div>
+        <div class="toolbar-right">
+          <div class="view-tabs">
+            <button id="tabTable" class="view-tab is-active" type="button" data-view="table" data-tip="Zobrazit jako tabulku">Tabulka</button>
+            <button id="tabCards" class="view-tab" type="button" data-view="cards" data-tip="Zobrazit jako karty">Karty</button>
+          </div>
+          <div id="autoRefreshInfo" class="auto-refresh">Auto refresh: každých 30s</div>
+          <div id="status" class="status" role="status" aria-live="polite" aria-atomic="true"></div>
+        </div>
+      </div>
+      <div id="tableView" class="view-content is-active table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Jméno</th>
+              <th>Kontakt</th>
+              <th>Datum a čas</th>
+              <th>Stůl</th>
+              <th>Drink</th>
+              <th>Hosté</th>
+              <th>Poznámka</th>
+              <th>Akce</th>
+            </tr>
+          </thead>
+          <tbody id="reservationRows"></tbody>
+        </table>
+        <div id="emptyState" class="empty" hidden>Zatím tu nejsou žádné rezervace.</div>
+      </div>
+      <div id="cardsView" class="view-content">
+        <div id="reservationCards" class="cards-wrap"></div>
+        <div id="emptyCards" class="empty" hidden>Zatím tu nejsou žádné rezervace.</div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const API_BASE = '/api/reservations';
+    const TABLE_LABELS = {
+      'bar-2': 'Bar 02 · Barový pult',
+      'window-4': 'Window 04 · U okna',
+      'lounge-4': 'Lounge 04 · Lounge zóna',
+      'booth-6': 'Booth 06 · Polouzavřený box',
+      'vip-8': 'VIP 08 · Zadní salonek'
+    };
+
+    const rows = document.getElementById('reservationRows');
+    const emptyState = document.getElementById('emptyState');
+    const cardsWrap = document.getElementById('reservationCards');
+    const emptyCards = document.getElementById('emptyCards');
+    const tableView = document.getElementById('tableView');
+    const cardsView = document.getElementById('cardsView');
+    const autoRefreshInfo = document.getElementById('autoRefreshInfo');
+    const tabButtons = document.querySelectorAll('.view-tab');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const searchInput = document.getElementById('searchInput');
+    const statusFilter = document.getElementById('statusFilter');
+    const sortBy = document.getElementById('sortBy');
+    const statusEl = document.getElementById('status');
+    const statTotal = document.getElementById('statTotal');
+    const statToday = document.getElementById('statToday');
+    const statDrink = document.getElementById('statDrink');
+    const statGuests = document.getElementById('statGuests');
+
+    let reservations = [];
+    let currentView = 'table';
+
+    function normalizeStatus(status) {
+      const value = String(status || 'new').trim();
+      const allowed = ['new', 'called', 'confirmed', 'no-show', 'done'];
+      return allowed.includes(value) ? value : 'new';
+    }
+
+    function statusLabel(status) {
+      const map = {
+        'new': 'nova',
+        'called': 'volano',
+        'confirmed': 'potvrzena',
+        'no-show': 'no-show',
+        'done': 'hotovo'
+      };
+      return map[normalizeStatus(status)] || 'nova';
+    }
+
+    function setStatus(message, type = '') {
+      statusEl.textContent = message;
+      statusEl.className = type ? 'status ' + type : 'status';
+    }
+
+    function getDateState(dateValue) {
+      const today = new Date().toISOString().split('T')[0];
+      if (dateValue === today) return 'today';
+      if (dateValue < today) return 'past';
+      return 'future';
+    }
+
+    function formatRelativeState(state) {
+      if (state === 'today') return 'dnes';
+      if (state === 'past') return 'minulé';
+      return 'budoucí';
+    }
+
+    function switchView(view) {
+      currentView = view;
+      tableView.classList.toggle('is-active', view === 'table');
+      cardsView.classList.toggle('is-active', view === 'cards');
+      tabButtons.forEach(button => {
+        button.classList.toggle('is-active', button.dataset.view === view);
+      });
+    }
+
+    async function apiRequest(url, options = {}) {
+      const response = await fetch(url, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(options.headers || {})
+        },
+        ...options
+      });
+      const payload = (response.headers.get('content-type') || '').includes('application/json')
+        ? await response.json()
+        : null;
+      if (!response.ok) {
+        throw new Error(payload && payload.error ? payload.error : 'Nepodařilo se načíst data.');
+      }
+      return payload;
+    }
+
+    function formatDate(dateValue, slotValue) {
+      return new Intl.DateTimeFormat('cs-CZ', {
+        weekday: 'short',
+        day: 'numeric',
+        month: 'numeric',
+        year: 'numeric'
+      }).format(new Date(dateValue + 'T12:00:00')) + ' · ' + slotValue;
+    }
+
+    function updateStats(items) {
+      statTotal.textContent = String(items.length);
+      const today = new Date().toISOString().split('T')[0];
+      statToday.textContent = String(items.filter(item => item.date === today).length);
+      statGuests.textContent = String(items.reduce((sum, item) => sum + Number(item.guests || 0), 0));
+      const drinkCounts = items.reduce((acc, item) => {
+        const key = item.drink || 'Bez drinku';
+        acc[key] = (acc[key] || 0) + 1;
+        return acc;
+      }, {});
+      const topDrink = Object.entries(drinkCounts).sort((a, b) => b[1] - a[1])[0];
+      statDrink.textContent = topDrink ? topDrink[0] : '-';
+    }
+
+    function getFilteredReservations() {
+      const term = searchInput.value.trim().toLowerCase();
+      const filtered = reservations.filter(item => {
+        const normalizedStatus = normalizeStatus(item.status);
+        if (statusFilter.value !== 'all' && normalizedStatus !== statusFilter.value) {
+          return false;
+        }
+        if (!term) return true;
+        return [
+          item.name,
+          item.phone,
+          item.email,
+          item.drink,
+          statusLabel(item.status),
+          item.tableId,
+          TABLE_LABELS[item.tableId] || ''
+        ].join(' ').toLowerCase().includes(term);
+      });
+
+      const parseSlotMinutes = (slotValue) => {
+        const parts = String(slotValue || '').split(':');
+        const hours = Number(parts[0] || 0);
+        const minutes = Number(parts[1] || 0);
+        return (hours * 60) + minutes;
+      };
+
+      const reservationDateTime = (item) => {
+        const dateBase = new Date(item.date + 'T00:00:00').getTime();
+        return dateBase + (parseSlotMinutes(item.slot) * 60000);
+      };
+
+      const sortMode = sortBy.value;
+      filtered.sort((a, b) => {
+        if (sortMode === 'date-asc') return reservationDateTime(a) - reservationDateTime(b);
+        if (sortMode === 'date-desc') return reservationDateTime(b) - reservationDateTime(a);
+        if (sortMode === 'created-asc') return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        if (sortMode === 'created-desc') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        if (sortMode === 'name-asc') return String(a.name || '').localeCompare(String(b.name || ''), 'cs');
+        if (sortMode === 'guests-asc') return Number(a.guests || 0) - Number(b.guests || 0);
+        if (sortMode === 'guests-desc') return Number(b.guests || 0) - Number(a.guests || 0);
+        return 0;
+      });
+
+      return filtered;
+    }
+
+    async function updateReservation(id, patch, successMessage) {
+      await apiRequest(API_BASE + '/' + id, {
+        method: 'PATCH',
+        body: JSON.stringify(patch)
+      });
+      await loadReservations();
+      setStatus(successMessage, 'success');
+    }
+
+    function attachActionHandlers(container, item) {
+      container.querySelectorAll('[data-action]').forEach(button => {
+        button.addEventListener('click', async () => {
+          const action = button.getAttribute('data-action');
+          if (action === 'delete') {
+            try {
+              await apiRequest(API_BASE + '/' + item.id, { method: 'DELETE' });
+              await loadReservations();
+              setStatus('Rezervace byla smazána.', 'success');
+            } catch (error) {
+              setStatus(error.message, 'error');
+            }
+            return;
+          }
+
+          try {
+            if (action === 'call') {
+              await updateReservation(item.id, { status: 'called' }, 'Rezervace označena jako volano.');
+              window.location.href = 'tel:' + String(item.phone || '').replace(/\s+/g, '');
+              return;
+            }
+            if (action === 'confirm') {
+              await updateReservation(item.id, { status: 'confirmed' }, 'Rezervace byla potvrzena.');
+              return;
+            }
+            if (action === 'no-show') {
+              await updateReservation(item.id, { status: 'no-show' }, 'Rezervace označena jako no-show.');
+              return;
+            }
+            if (action === 'done') {
+              await updateReservation(item.id, { status: 'done' }, 'Rezervace označena jako hotovo.');
+            }
+          } catch (error) {
+            setStatus(error.message, 'error');
+          }
+        });
+      });
+    }
+
+    function renderTable(filtered) {
+      rows.innerHTML = '';
+      emptyState.hidden = filtered.length > 0;
+
+      filtered.forEach(item => {
+        const tr = document.createElement('tr');
+        const status = normalizeStatus(item.status);
+        tr.innerHTML =
+          '<td><strong>' + item.name + '</strong><br><span class="badge status-' + status + '">' + statusLabel(status) + '</span></td>' +
+          '<td>' + item.phone + '<br><span class="muted">' + item.email + '</span></td>' +
+          '<td>' + formatDate(item.date, item.slot) + '<br><span class="muted">vytvořeno ' + new Date(item.createdAt).toLocaleString('cs-CZ') + '</span></td>' +
+          '<td>' + (TABLE_LABELS[item.tableId] || item.tableId) + '</td>' +
+          '<td>' + (item.drink || '-') + '</td>' +
+          '<td>' + item.guests + '</td>' +
+          '<td title="' + (item.note || '') + '">' + (item.note || '<span class="muted">bez poznámky</span>') + '</td>' +
+          '<td><div class="row-actions">' +
+            '<button class="mini-btn is-muted" type="button" data-action="call" aria-label="Zavolat" data-tip="Zavolat hostu">☎</button>' +
+            '<button class="mini-btn is-success" type="button" data-action="confirm" aria-label="Potvrdit" data-tip="Potvrdit rezervaci">✓</button>' +
+            '<button class="mini-btn is-warning" type="button" data-action="no-show" aria-label="No-show" data-tip="Označit jako no-show">✗</button>' +
+            '<button class="mini-btn is-success" type="button" data-action="done" aria-label="Hotovo" data-tip="Rezervace dokončena">★</button>' +
+            '<button class="mini-btn is-danger" type="button" data-action="delete" aria-label="Smazat" data-tip="Smazat rezervaci">🗑</button>' +
+          '</div></td>';
+        attachActionHandlers(tr, item);
+        rows.appendChild(tr);
+      });
+    }
+
+    function renderCards(filtered) {
+      cardsWrap.innerHTML = '';
+      emptyCards.hidden = filtered.length > 0;
+
+      filtered.forEach(item => {
+        const state = getDateState(item.date);
+        const status = normalizeStatus(item.status);
+        const card = document.createElement('article');
+        card.className = 'reservation-card ' + state;
+        card.innerHTML =
+          '<div class="card-head">' +
+            '<div class="card-name">' + item.name + '</div>' +
+            '<div class="card-tags">' +
+              '<span class="card-tag ' + state + '">' + formatRelativeState(state) + '</span>' +
+              '<span class="badge status-' + status + '">' + statusLabel(status) + '</span>' +
+              '<span class="card-tag">' + (item.drink || '-') + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<div class="card-meta">' +
+            formatDate(item.date, item.slot) + '<br>' +
+            (TABLE_LABELS[item.tableId] || item.tableId) + '<br>' +
+            item.guests + ' hostů · ' + item.phone + '<br>' +
+            (item.note ? item.note : '<span class="muted">bez poznámky</span>') +
+          '</div>' +
+          '<div class="row-actions">' +
+            '<button class="mini-btn is-muted" type="button" data-action="call" aria-label="Zavolat" data-tip="Zavolat hostu">☎</button>' +
+            '<button class="mini-btn is-success" type="button" data-action="confirm" aria-label="Potvrdit" data-tip="Potvrdit rezervaci">✓</button>' +
+            '<button class="mini-btn is-warning" type="button" data-action="no-show" aria-label="No-show" data-tip="Označit jako no-show">✗</button>' +
+            '<button class="mini-btn is-success" type="button" data-action="done" aria-label="Hotovo" data-tip="Rezervace dokončena">★</button>' +
+            '<button class="mini-btn is-danger" type="button" data-action="delete" aria-label="Smazat" data-tip="Smazat rezervaci">🗑</button>' +
+          '</div>';
+
+        attachActionHandlers(card, item);
+
+        cardsWrap.appendChild(card);
+      });
+    }
+
+    function renderViews() {
+      const filtered = getFilteredReservations();
+      updateStats(filtered);
+      renderTable(filtered);
+      renderCards(filtered);
+    }
+
+    async function loadReservations() {
+      const payload = await apiRequest(API_BASE);
+      reservations = payload.reservations || [];
+      renderViews();
+    }
+
+    refreshBtn.addEventListener('click', async () => {
+      try {
+        await loadReservations();
+        setStatus('Data byla obnovena.', 'success');
+      } catch (error) {
+        setStatus(error.message, 'error');
+      }
+    });
+
+    searchInput.addEventListener('input', () => {
+      renderViews();
+    });
+
+    statusFilter.addEventListener('change', () => {
+      renderViews();
+    });
+
+    sortBy.addEventListener('change', () => {
+      renderViews();
+    });
+
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        switchView(button.dataset.view);
+      });
+    });
+
+    setInterval(async () => {
+      try {
+        await loadReservations();
+        autoRefreshInfo.textContent = 'Auto refresh: právě aktualizováno v ' + new Date().toLocaleTimeString('cs-CZ');
+      } catch (error) {
+        autoRefreshInfo.textContent = 'Auto refresh: chyba připojení';
+      }
+    }, 30000);
+
+    loadReservations().catch(error => {
+      setStatus('Server pro rezervace neběží. Spusť prosím localhost server.', 'error');
+      console.error(error);
+    });
+  </script>
+</body>
+</html>

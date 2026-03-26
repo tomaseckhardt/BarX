@@ -1,0 +1,12 @@
+{
+  "name": "barx-local-reservations",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "test:e2e": "tests/node_modules/.bin/playwright test --config=tests/playwright.config.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.54.2"
+  }
+}

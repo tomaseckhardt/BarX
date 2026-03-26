@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+
+# Generic cache files and folders
+.cache/
+**/.cache/
+*.cache
+
+# Tool caches
+.eslintcache
+.parcel-cache/
+.vite/
+.turbo/
+.npm/
+.pnpm-store/
+.yarn/cache/
+.next/cache/
