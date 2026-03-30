@@ -1,0 +1,9 @@
+nohup: ignoruji vstup
+[2026-03-30T09:14:39.125Z] BarX server running at http://localhost:3000
+Background auto-complete running every 300s
+[HTTP] {"ts":"2026-03-30T09:14:45.321Z","requestId":"bc6d845f-1c1a-40a2-bc22-15422947d4e4","method":"GET","path":"/","status":200,"durationMs":3,"ip":"::ffff:127.0.0.1","ua":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"}
+[HTTP] {"ts":"2026-03-30T09:14:45.346Z","requestId":"53d6f6b7-d0e3-40bf-b8bc-96c4e94adfe4","method":"GET","path":"/styles.css","status":200,"durationMs":2,"ip":"::ffff:127.0.0.1","ua":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"}
+[HTTP] {"ts":"2026-03-30T09:14:45.620Z","requestId":"59a68cbe-a83a-43b4-88df-eacccd1ddaa7","method":"GET","path":"/api/reservations","status":200,"durationMs":2,"ip":"::ffff:127.0.0.1","ua":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"}
+[HTTP] {"ts":"2026-03-30T09:14:50.311Z","requestId":"a08fd6cb-271e-4b86-b5d4-4e3830d82fd6","method":"GET","path":"/","status":200,"durationMs":1,"ip":"::1","ua":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"}
+[HTTP] {"ts":"2026-03-30T09:14:50.372Z","requestId":"5a6660b6-c85f-46d8-9f51-fcf331112ee2","method":"GET","path":"/styles.css","status":200,"durationMs":2,"ip":"::1","ua":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"}
+[HTTP] {"ts":"2026-03-30T09:14:50.622Z","requestId":"720c4da2-e9bf-4c9a-bf7a-c85f75f8a756","method":"GET","path":"/api/reservations","status":200,"durationMs":1,"ip":"::1","ua":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"}

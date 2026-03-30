@@ -58,6 +58,7 @@
     }
   </script>
   <title>Bar&nbsp;— Drink Menu</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍸</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Raleway:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" />
@@ -71,10 +72,11 @@
   <!-- NAV -->
   <nav aria-label="Hlavní navigace">
     <div class="nav-logo">BarX</div>
-    <ul class="nav-links">
+    <button id="hamburger" class="hamburger" type="button" aria-label="Otevřít menu" aria-expanded="false">☰</button>
+    <ul class="nav-links" id="navLinks">
       <li><a href="#menu" data-tip="Náš koktejlový lístek">Menu</a></li>
       <li><a href="#about" data-tip="Příběh a tým baru">O nás</a></li>
-      <!-- <li><a href="#gallery" data-tip="Fotky z baru">Galerie</a></li> -->
+      <li><a href="#gallery" data-tip="Fotky z baru">Galerie</a></li>
       <li><a href="#reservation" data-tip="Rezervuj stůl online">Rezervace</a></li>
       <li><a href="#contact" data-tip="Adresa a otevírací doba">Kontakt</a></li>
       <li><a aria-disabled="true" tabindex="-1" data-tip="Správa rezervací (interní)">Admin</a></li>
@@ -333,7 +335,6 @@
     </div>
   </section>
 
-  <!-- GALLERY (deaktivováno)
   <section id="gallery">
     <span class="section-label">Atmosféra</span>
     <h2 class="section-title">Nahlédni do baru</h2>
@@ -364,7 +365,6 @@
       </button>
     </div>
   </section>
-  -->
 
   <!-- REVIEWS -->
   <section id="reviews">
@@ -661,7 +661,6 @@
     </div>
   </div>
 
-  <!-- GALLERY LIGHTBOX (deaktivováno)
   <div id="galleryLightbox" class="gallery-lightbox" hidden aria-hidden="true">
     <div class="gallery-lightbox-backdrop" data-close-lightbox="true"></div>
     <div class="gallery-lightbox-content" role="dialog" aria-modal="true" aria-label="Zvětšená fotografie">
@@ -670,12 +669,26 @@
       <p id="galleryLightboxCaption" class="gallery-lightbox-caption"></p>
     </div>
   </div>
-  -->
 
   <!-- FOOTER -->
   <footer>
     <p>© 2026 <span>BarX</span> · Craft Cocktail Bar · Praha · <a class="admin-link" href="/admin.html">Admin přehled</a> · Pij zodpovědně 🍹</p>
   </footer>
+
+  <!-- TOAST CONTAINER -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <!-- BACK TO TOP -->
+  <button id="backToTop" class="back-to-top" type="button" aria-label="Zpět nahoru">↑</button>
+
+  <!-- GDPR BANNER -->
+  <div id="gdprBanner" class="gdpr-banner" hidden>
+    <p>Tento web používá soubory cookies a služby třetích stran (Google Fonts, Google Maps) pro správné fungování. Pokračováním souhlasíte s jejich použitím.</p>
+    <div class="gdpr-actions">
+      <button id="gdprAccept" class="btn btn-primary" type="button">Souhlasim</button>
+      <button id="gdprDecline" class="btn btn-secondary" type="button">Odmítnout</button>
+    </div>
+  </div>
 
   <!-- cursor glow -->
   <div id="cursor-glow"></div>
@@ -901,9 +914,9 @@
 
     // Zobrazuje zprávu o stavu výsledku (chyba, úspěch)
     function setStatus(message, type = '') {
-      // Zobrazuje zprávu o stavu výsledku (chyba, úspěch)
       reservationStatus.textContent = message;
       reservationStatus.className = type ? 'reservation-status ' + type : 'reservation-status';
+      if (message) showToast(message, type || 'info');
     }
 
     // ===== DATE & TIME UTILITIES =====
@@ -1654,6 +1667,7 @@
         const savedId = result.reservation ? result.reservation.id : '';
         await loadReservations();
         reservationForm.reset();
+        clearFormDraft();
         guestCountInput.value = '4';
         reservationDrinkInput.value = 'MonstRum';
         plannedVibeInput.value = '5';
@@ -1700,9 +1714,10 @@
     });
 
     async function initReservationSystem() {
+      restoreFormDraft();
       setMinDate();
-      reservationDrinkInput.value = 'MonstRum';
-      plannedVibeInput.value = '5';
+      if (!reservationDrinkInput.value) reservationDrinkInput.value = 'MonstRum';
+      if (!plannedVibeInput.value) plannedVibeInput.value = '5';
       updateVibeUI();
       updateSummary();
       try {
@@ -1801,8 +1816,7 @@
       }
     });
 
-    // ===== GALLERY LIGHTBOX (deaktivováno) =====
-    /*
+    // ===== GALLERY LIGHTBOX =====
     const galleryLightbox = document.getElementById('galleryLightbox');
     document.querySelectorAll('.gallery-item').forEach(function(item) {
       item.addEventListener('click', function() {
@@ -1836,7 +1850,6 @@
         galleryLightbox.setAttribute('aria-hidden', 'true');
       }
     });
-    */
 
     // ===== LOYALTY SYSTEM =====
     // Track visits by email in localStorage
@@ -1899,6 +1912,103 @@
     }
 
     guestEmailInput.addEventListener('blur', updateLoyaltyBadge);
+
+    // ===== TOAST SYSTEM =====
+    function showToast(message, type) {
+      var container = document.getElementById('toastContainer');
+      if (!container) return;
+      var toast = document.createElement('div');
+      toast.className = 'toast toast-' + (type || 'info');
+      var iconMap = { success: '✓', error: '✕', info: 'ℹ' };
+      toast.innerHTML = '<span class="toast-icon">' + (iconMap[type] || 'ℹ') + '</span>' +
+        '<span class="toast-message">' + message.replace(/</g, '&lt;') + '</span>' +
+        '<button class="toast-close" type="button" aria-label="Zavřít">&times;</button>';
+      toast.querySelector('.toast-close').addEventListener('click', function() { dismissToast(toast); });
+      container.appendChild(toast);
+      setTimeout(function() { dismissToast(toast); }, 5000);
+    }
+    function dismissToast(toast) {
+      if (!toast || toast.classList.contains('is-leaving')) return;
+      toast.classList.add('is-leaving');
+      setTimeout(function() { toast.remove(); }, 300);
+    }
+
+    // ===== FORM AUTOSAVE =====
+    var AUTOSAVE_KEY = 'barx_form_draft';
+    function saveFormDraft() {
+      var draft = {
+        name: guestNameInput.value,
+        phone: guestPhoneInput.value,
+        email: guestEmailInput.value,
+        note: reservationNoteInput.value,
+        drink: reservationDrinkInput.value,
+        guests: guestCountInput.value,
+        date: reservationDateInput.value,
+        vibe: plannedVibeInput.value
+      };
+      try { localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(draft)); } catch(e) {}
+    }
+    function restoreFormDraft() {
+      try {
+        var raw = localStorage.getItem(AUTOSAVE_KEY);
+        if (!raw) return;
+        var draft = JSON.parse(raw);
+        if (draft.name) guestNameInput.value = draft.name;
+        if (draft.phone) guestPhoneInput.value = draft.phone;
+        if (draft.email) guestEmailInput.value = draft.email;
+        if (draft.note) reservationNoteInput.value = draft.note;
+        if (draft.drink) reservationDrinkInput.value = draft.drink;
+        if (draft.guests) guestCountInput.value = draft.guests;
+        if (draft.date) reservationDateInput.value = draft.date;
+        if (draft.vibe) plannedVibeInput.value = draft.vibe;
+      } catch(e) {}
+    }
+    function clearFormDraft() {
+      try { localStorage.removeItem(AUTOSAVE_KEY); } catch(e) {}
+    }
+    ['input', 'change'].forEach(function(evt) {
+      reservationForm.addEventListener(evt, saveFormDraft);
+    });
+
+    // ===== BACK TO TOP =====
+    var backToTopBtn = document.getElementById('backToTop');
+    window.addEventListener('scroll', function() {
+      backToTopBtn.classList.toggle('is-visible', window.scrollY > 600);
+    }, { passive: true });
+    backToTopBtn.addEventListener('click', function() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // ===== HAMBURGER MENU =====
+    var hamburgerBtn = document.getElementById('hamburger');
+    var navLinksEl = document.getElementById('navLinks');
+    hamburgerBtn.addEventListener('click', function() {
+      var isOpen = navLinksEl.classList.toggle('is-open');
+      hamburgerBtn.setAttribute('aria-expanded', String(isOpen));
+      hamburgerBtn.textContent = isOpen ? '✕' : '☰';
+    });
+    navLinksEl.addEventListener('click', function(e) {
+      if (e.target.tagName === 'A') {
+        navLinksEl.classList.remove('is-open');
+        hamburgerBtn.setAttribute('aria-expanded', 'false');
+        hamburgerBtn.textContent = '☰';
+      }
+    });
+
+    // ===== GDPR CONSENT =====
+    var GDPR_KEY = 'barx_gdpr';
+    var gdprBannerEl = document.getElementById('gdprBanner');
+    if (!localStorage.getItem(GDPR_KEY)) {
+      gdprBannerEl.hidden = false;
+    }
+    document.getElementById('gdprAccept').addEventListener('click', function() {
+      localStorage.setItem(GDPR_KEY, 'accepted');
+      gdprBannerEl.hidden = true;
+    });
+    document.getElementById('gdprDecline').addEventListener('click', function() {
+      localStorage.setItem(GDPR_KEY, 'declined');
+      gdprBannerEl.hidden = true;
+    });
 
     initReservationSystem();
   </script>

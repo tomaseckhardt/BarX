@@ -52,6 +52,38 @@ const MIME_TYPES = {
   '.ico': 'image/x-icon'
 };
 
+// ===== RATE LIMITER =====
+const RATE_LIMIT = {
+  windowMs: 60_000,
+  maxRequests: 30
+};
+const rateLimitStore = new Map();
+
+function isRateLimited(ip) {
+  const now = Date.now();
+  let timestamps = rateLimitStore.get(ip);
+  if (!timestamps) {
+    timestamps = [];
+    rateLimitStore.set(ip, timestamps);
+  }
+  while (timestamps.length > 0 && timestamps[0] <= now - RATE_LIMIT.windowMs) {
+    timestamps.shift();
+  }
+  if (timestamps.length >= RATE_LIMIT.maxRequests) return true;
+  timestamps.push(now);
+  return false;
+}
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, timestamps] of rateLimitStore) {
+    while (timestamps.length > 0 && timestamps[0] <= now - RATE_LIMIT.windowMs) {
+      timestamps.shift();
+    }
+    if (timestamps.length === 0) rateLimitStore.delete(ip);
+  }
+}, 5 * 60_000);
+
 // Dostupné stoly s IDs a počtem míst
 const TABLES = [
   { id: 'bar-2', seats: 2 },
@@ -321,6 +353,15 @@ async function handleApi(req, res, pathname) {
     return;
   }
 
+  // Rate limit pro mutující requesty
+  if (['POST', 'PATCH', 'DELETE'].includes(req.method)) {
+    const clientIp = getClientIp(req);
+    if (isRateLimited(clientIp)) {
+      sendJson(req, res, 429, { error: 'Příliš mnoho požadavků. Zkuste to za chvíli.' });
+      return;
+    }
+  }
+
   // GET /api/reservations - Vrátí všechny rezervace (bez auto-kompletace - běží na pozadí)
   if (pathname === '/api/reservations' && req.method === 'GET') {
     try {
@@ -437,7 +478,14 @@ async function handleStatic(req, res, pathname) {
     });
     fs.createReadStream(filePath).pipe(res);
   } catch {
-    sendText(req, res, 404, 'Not found');
+    try {
+      const page404 = path.join(ROOT_DIR, '404.html');
+      const html = await fs.promises.readFile(page404, 'utf8');
+      res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8', ...getSecurityHeaders() });
+      res.end(html);
+    } catch {
+      sendText(req, res, 404, 'Not found');
+    }
   }
 }
 
