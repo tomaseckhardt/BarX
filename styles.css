@@ -2908,48 +2908,47 @@
 }
 
 /* ── HAMBURGER ────────────────────────────────────── */
-.hamburger {
-  display: none;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  background: none;
-  border: none;
-  color: var(--text);
-  font-size: 1.5rem;
-  cursor: pointer;
-  z-index: 101;
-  line-height: 1;
-}
-.hamburger:focus-visible {
-  outline: 2px solid rgba(240, 201, 134, .9);
-  outline-offset: 4px;
-  border-radius: 6px;
-}
+
 
 /* ── BACK TO TOP ──────────────────────────────────── */
 .back-to-top {
   position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  width: 48px;
-  height: 48px;
+  left: 2.2rem;
+  bottom: 2.2rem;
+  width: 90px;
+  height: 90px;
   border-radius: 50%;
-  border: 1px solid rgba(200,169,110,.3);
-  background: rgba(13,11,18,.85);
-  backdrop-filter: blur(8px);
+  border: 2.5px solid var(--accent1);
+  background: linear-gradient(135deg, rgba(123,63,255,0.13) 0%, rgba(200,169,110,0.10) 100%);
+  box-shadow: 0 8px 32px rgba(123,63,255,0.13), 0 1.5px 0.5px rgba(200,169,110,0.10);
+  backdrop-filter: blur(10px);
   color: var(--accent1);
-  font-size: 1.3rem;
+  font-size: 3.2rem;
+  font-family: 'Bebas Neue', sans-serif;
+  font-weight: 700;
+  letter-spacing: .04em;
   cursor: pointer;
-  z-index: 90;
+  z-index: 120;
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
   transform: translateY(20px);
   pointer-events: none;
-  transition: opacity .3s, transform .3s, border-color .2s, box-shadow .2s;
+  transition: opacity .3s, transform .3s, border-color .2s, box-shadow .2s, background .2s;
+  outline: none;
+}
+.back-to-top.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.back-to-top:hover, .back-to-top:focus-visible {
+  border-color: var(--accent2);
+  background: linear-gradient(135deg, rgba(123,63,255,0.22) 0%, rgba(200,169,110,0.18) 100%);
+  color: var(--accent2);
+  box-shadow: 0 12px 36px rgba(123,63,255,0.22), 0 2.5px 1px rgba(200,169,110,0.18);
+}
 }
 .back-to-top.is-visible {
   opacity: 1;

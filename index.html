@@ -72,14 +72,12 @@
   <!-- NAV -->
   <nav aria-label="Hlavní navigace">
     <div class="nav-logo">BarX</div>
-    <button id="hamburger" class="hamburger" type="button" aria-label="Otevřít menu" aria-expanded="false">☰</button>
     <ul class="nav-links" id="navLinks">
       <li><a href="#menu" data-tip="Náš koktejlový lístek">Menu</a></li>
       <li><a href="#about" data-tip="Příběh a tým baru">O nás</a></li>
       <li><a href="#gallery" data-tip="Fotky z baru">Galerie</a></li>
       <li><a href="#reservation" data-tip="Rezervuj stůl online">Rezervace</a></li>
       <li><a href="#contact" data-tip="Adresa a otevírací doba">Kontakt</a></li>
-      <li><a aria-disabled="true" tabindex="-1" data-tip="Správa rezervací (interní)">Admin</a></li>
     </ul>
   </nav>
 
@@ -1978,22 +1976,7 @@
     backToTopBtn.addEventListener('click', function() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
-
-    // ===== HAMBURGER MENU =====
-    var hamburgerBtn = document.getElementById('hamburger');
-    var navLinksEl = document.getElementById('navLinks');
-    hamburgerBtn.addEventListener('click', function() {
-      var isOpen = navLinksEl.classList.toggle('is-open');
-      hamburgerBtn.setAttribute('aria-expanded', String(isOpen));
-      hamburgerBtn.textContent = isOpen ? '✕' : '☰';
-    });
-    navLinksEl.addEventListener('click', function(e) {
-      if (e.target.tagName === 'A') {
-        navLinksEl.classList.remove('is-open');
-        hamburgerBtn.setAttribute('aria-expanded', 'false');
-        hamburgerBtn.textContent = '☰';
-      }
-    });
+    // Hamburger menu odstraněno
 
     // ===== GDPR CONSENT =====
     var GDPR_KEY = 'barx_gdpr';
