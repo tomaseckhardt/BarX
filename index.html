@@ -418,6 +418,28 @@
           </div>
         </div>
       </div>
+      <div class="review-card reveal">
+        <div class="review-stars" aria-label="5 z 5 hvězd">★★★★★</div>
+        <p class="review-text">„BarX je místo, kde se cítím jako doma. Skvělý výběr drinků a vždy přátelská obsluha. Doporučuji všem milovníkům koktejlů!”</p>
+        <div class="review-author">
+          <div class="review-avatar">AP</div>
+          <div>
+            <strong>Andrea P.</strong>
+            <span>První návštěva</span>
+          </div>
+        </div>
+      </div>
+      <div class="review-card reveal">
+        <div class="review-stars" aria-label="4 z 5 hvězd">★★★★☆</div>
+        <p class="review-text">„Originální menu, krásný interiér a rychlá obsluha. Jen bych uvítal více nealko variant, jinak super zážitek!”</p>
+        <div class="review-author">
+          <div class="review-avatar">VK</div>
+          <div>
+            <strong>Vojtěch K.</strong>
+            <span>Host na služební cestě</span>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -1296,7 +1318,7 @@
             slot: item.slot,
             table: tableName,
             drink: item.drink || 'neuveden',
-            hasDiscount: hasDiscount
+            hasDiscount
           }, 'detail');
         });
 
@@ -1616,7 +1638,7 @@
       const originalDisabled = submitBtn.disabled;
       submitBtn.disabled = true;
       submitBtn.textContent = 'Odesílám...';
-      
+
       try {
         const guests = Number(guestCountInput.value);
         const name = document.getElementById('guestName').value.trim();

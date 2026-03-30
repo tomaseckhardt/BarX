@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function () {
     </div>
     <div class="drink-card theme-gold animated-drink" data-category="signature">
       <span class="drink-badge">Signature</span>
-      <div class="drink-name">Golden Hour</div>
+      <div class="drink-name">Tropical Beam</div>
       <div class="drink-sub">Rum · Mango · Limetka</div>
       <p class="drink-desc">Exotický rumový koktejl s mangem a limetkou. Slunce ve sklenici.</p>
       <div class="drink-footer"><span class="drink-price">149 Kč</span><div class="drink-abv"><div class="abv-dots"><div class="abv-dot filled"></div><div class="abv-dot filled"></div><div class="abv-dot filled"></div><div class="abv-dot"></div><div class="abv-dot"></div></div>Síla</div></div>
@@ -74,17 +74,45 @@ document.addEventListener('DOMContentLoaded', function () {
   let shown = false;
   let collapseBtn = null;
 
+  function getRandomEdgeTransform() {
+    // Náhodný směr: left, right, top, bottom, nebo diagonály
+    const edges = [
+      {x: '-120vw', y: '0'},    // zleva
+      {x: '120vw', y: '0'},     // zprava
+      {x: '0', y: '-80vh'},     // shora
+      {x: '0', y: '80vh'},      // zdola
+      {x: '-100vw', y: '-60vh'},// zleva shora
+      {x: '100vw', y: '-60vh'}, // zprava shora
+      {x: '-100vw', y: '60vh'}, // zleva zdola
+      {x: '100vw', y: '60vh'}   // zprava zdola
+    ];
+    const pick = edges[Math.floor(Math.random() * edges.length)];
+    // Přestřelení (overshoot) směrem ke středu - menší
+    const overshootX = (parseInt(pick.x) || 0) * -0.06 + 'vw';
+    const overshootY = (parseInt(pick.y) || 0) * -0.06 + 'vh';
+    return {
+      start: `translate(${pick.x}, ${pick.y}) scale(0.92)`,
+      overshootX,
+      overshootY
+    };
+  }
+
   showMoreBtn.addEventListener('click', function () {
     if (!shown) {
       menuGrid.insertAdjacentHTML('beforeend', moreDrinksHTML);
-      // Animace: postupné zobrazení
+      // Animace: každé dlaždici nastavíme náhodný start
       const newDrinks = menuGrid.querySelectorAll('.animated-drink');
       newDrinks.forEach((el, i) => {
+        const {start, overshootX, overshootY} = getRandomEdgeTransform();
+        el.style.opacity = '0';
+        el.style.transform = start;
+        el.style.setProperty('--overshoot-x', overshootX);
+        el.style.setProperty('--overshoot-y', overshootY);
         setTimeout(() => {
           el.style.opacity = '';
           el.style.transform = '';
           el.classList.add('start-anim');
-        }, i * 90);
+        }, i * 1000);
       });
       // Přidání tlačítka Zabalit
       collapseBtn = document.createElement('button');
@@ -94,7 +122,6 @@ document.addEventListener('DOMContentLoaded', function () {
       collapseBtn.style.display = 'block';
       collapseBtn.style.maxWidth = '320px';
       collapseBtn.onclick = function () {
-        // Odebrat nové drinky
         newDrinks.forEach(drink => drink.remove());
         collapseBtn.remove();
         showMoreBtn.style.display = '';

@@ -3075,23 +3075,23 @@
   #cursor-glow { display: none; }
 }
 
-/* Animace pro nové drinky po rozbalení */
+/* Animace pro nové drinky po rozbalení z náhodného okraje */
 .drink-card.animated-drink {
   opacity: 0;
-  transform: translateY(40px) scale(0.97);
-  animation: drinkFadeIn 0.7s cubic-bezier(.33,1.2,.68,1) forwards;
+  /* transform bude nastaven dynamicky JS podle náhodného směru */
+  animation: drinkFlyIn 0.95s cubic-bezier(.33,1.2,.68,1) forwards;
 }
-@keyframes drinkFadeIn {
+@keyframes drinkFlyIn {
   0% {
     opacity: 0;
-    transform: translateY(40px) scale(0.97);
+    /* transform bude přepsán inline stylem z JS */
   }
-  60% {
+  70% {
     opacity: 1;
-    transform: translateY(-8px) scale(1.03);
+    transform: translate(var(--overshoot-x, 0), var(--overshoot-y, 0)) scale(1.04);
   }
   100% {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translate(0, 0) scale(1);
   }
 }
