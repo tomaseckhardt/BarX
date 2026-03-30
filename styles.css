@@ -1,3 +1,100 @@
+/* --- CUSTOM POPUPS: Speciální akce & FAQ --- */
+.custom-popup {
+  position: fixed;
+  inset: 0;
+  z-index: 12010;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  background: none;
+}
+.custom-popup[aria-hidden="false"] {
+  display: flex;
+}
+.custom-popup-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 7, 15, .54);
+  backdrop-filter: blur(2.5px);
+}
+.custom-popup-dialog {
+  position: relative;
+  z-index: 1;
+  background: var(--card);
+  border-radius: 22px;
+  box-shadow: 0 18px 60px rgba(0,0,0,.45);
+  padding: 2.2rem 2rem 2rem 2rem;
+  max-width: 420px;
+  width: 100%;
+  color: var(--text);
+  animation: fadeUp .3s cubic-bezier(.22,1,.36,1);
+}
+.custom-popup-close {
+  position: absolute;
+  top: 1.1rem;
+  right: 1.1rem;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(0,0,0,.32);
+  color: #fff;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+.custom-popup-close:hover {
+  border-color: var(--accent1);
+  color: var(--accent1);
+}
+.events-list {
+  margin: 1.2rem 0 0 0;
+  padding: 0;
+  list-style: none;
+}
+.events-list li {
+  margin-bottom: .7rem;
+  font-size: 1.08rem;
+  color: var(--muted);
+}
+.events-list li strong {
+  color: var(--accent1);
+  margin-right: .5em;
+}
+.faq-list {
+  margin-top: 1.2rem;
+}
+.faq-item {
+  margin-bottom: 1.1rem;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  padding-bottom: .7rem;
+}
+.faq-question {
+  background: none;
+  border: none;
+  color: var(--accent2);
+  font-family: 'Raleway', sans-serif;
+  font-size: 1.08rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  width: 100%;
+  transition: color .2s;
+}
+.faq-question:hover, .faq-item.active .faq-question {
+  color: var(--accent1);
+}
+.faq-answer {
+  display: none;
+  color: var(--muted);
+  font-size: .98rem;
+  margin-top: .5rem;
+  line-height: 1.6;
+}
+.faq-item.active .faq-answer {
+  display: block;
+}
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {

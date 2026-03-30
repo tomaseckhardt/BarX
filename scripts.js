@@ -1,6 +1,53 @@
 // Skript pro rozbalení dalších drinků
 
 document.addEventListener('DOMContentLoaded', function () {
+    // --- POPUPY: Speciální akce & FAQ ---
+    const specialEventsCard = document.getElementById('specialEventsCard');
+    const eventsPopup = document.getElementById('eventsPopup');
+    const closeEventsPopup = document.getElementById('closeEventsPopup');
+    if (specialEventsCard && eventsPopup && closeEventsPopup) {
+      specialEventsCard.onclick = function() {
+        eventsPopup.hidden = false;
+        eventsPopup.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('modal-open');
+      };
+      closeEventsPopup.onclick = function() {
+        eventsPopup.hidden = true;
+        eventsPopup.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('modal-open');
+      };
+      eventsPopup.querySelector('.custom-popup-backdrop').onclick = closeEventsPopup.onclick;
+    }
+
+    const faqCard = document.getElementById('faqCard');
+    const faqPopup = document.getElementById('faqPopup');
+    const closeFaqPopup = document.getElementById('closeFaqPopup');
+    if (faqCard && faqPopup && closeFaqPopup) {
+      faqCard.onclick = function() {
+        faqPopup.hidden = false;
+        faqPopup.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('modal-open');
+      };
+      closeFaqPopup.onclick = function() {
+        faqPopup.hidden = true;
+        faqPopup.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('modal-open');
+      };
+      faqPopup.querySelector('.custom-popup-backdrop').onclick = closeFaqPopup.onclick;
+    }
+
+    // FAQ rozbalování odpovědí
+    function setupFaqToggle() {
+      document.querySelectorAll('.faq-question').forEach(function(btn) {
+        btn.onclick = function() {
+          const item = btn.closest('.faq-item');
+          item.classList.toggle('active');
+        };
+      });
+    }
+    if (document.querySelectorAll('.faq-question').length) {
+      setupFaqToggle();
+    }
   const showMoreBtn = document.getElementById('showMoreDrinks');
   const menuGrid = document.getElementById('menuGrid');
 

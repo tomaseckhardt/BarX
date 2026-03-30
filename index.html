@@ -640,12 +640,12 @@
         <div class="contact-label">E-mail</div>
         <div class="contact-value">hello@barx.cz</div>
       </div>
-      <div class="contact-card">
+      <div class="contact-card" id="specialEventsCard">
         <div class="contact-icon">🎉</div>
         <div class="contact-label">Speciální akce</div>
-        <div class="contact-value">Kalendář eventů a barových večerů. Přijď zažít něco speciálního!</div>
+        <div class="contact-value">Kalendář eventů a barových večerů. Přijď zažít něco speciálního!<br><span style="color:var(--accent2);font-size:.97em;font-weight:600;display:block;margin-top:.5em;">Chceš vědět, co máme v plánu? <u>Klikni zde!</u></span></div>
       </div>
-      <div class="contact-card">
+      <div class="contact-card" id="faqCard">
         <div class="contact-icon">❓</div>
         <div class="contact-label">FAQ</div>
         <div class="contact-value">Odpovědi na nejčastější dotazy ohledně rezervací, menu a služeb.</div>
@@ -717,6 +717,54 @@
   <button id="backToTop" class="back-to-top" type="button" aria-label="Zpět nahoru">↑</button>
 
   <!-- GDPR BANNER -->
+    <!-- POPUP: Speciální akce -->
+    <div id="eventsPopup" class="custom-popup" hidden aria-hidden="true">
+      <div class="custom-popup-backdrop" data-close-events="true"></div>
+      <div class="custom-popup-dialog" role="dialog" aria-modal="true" aria-labelledby="eventsPopupTitle">
+        <button id="closeEventsPopup" class="custom-popup-close" type="button" aria-label="Zavřít">×</button>
+        <h3 id="eventsPopupTitle">Kalendář speciálních akcí</h3>
+        <ul class="events-list">
+          <li><strong>3. 4. 2026 (Pátek)</strong> – Pyžamová párty</li>
+          <li><strong>11. 4. 2026 (Sobota)</strong> – Kostýmová noc: Superhrdinové</li>
+          <li><strong>17. 4. 2026 (Pátek)</strong> – Cuba Libre Night (rumové koktejly & latino hudba)</li>
+          <li><strong>25. 4. 2026 (Sobota)</strong> – Tiki Night (havajské drinky)</li>
+          <li><strong>1. 5. 2026 (Pátek)</strong> – 80's Retro Party</li>
+          <li><strong>9. 5. 2026 (Sobota)</strong> – Gin & Tonic Festival</li>
+        </ul>
+        <p style="margin-top:1.2rem;color:var(--muted);font-size:.95rem;">Sleduj náš Instagram pro další akce!</p>
+      </div>
+    </div>
+
+    <!-- POPUP: FAQ -->
+    <div id="faqPopup" class="custom-popup" hidden aria-hidden="true">
+      <div class="custom-popup-backdrop" data-close-faq="true"></div>
+      <div class="custom-popup-dialog" role="dialog" aria-modal="true" aria-labelledby="faqPopupTitle">
+        <button id="closeFaqPopup" class="custom-popup-close" type="button" aria-label="Zavřít">×</button>
+        <h3 id="faqPopupTitle">Nejčastější dotazy</h3>
+        <div class="faq-list">
+          <div class="faq-item">
+            <button class="faq-question" type="button">Musím si rezervovat stůl předem?</button>
+            <div class="faq-answer">Rezervace doporučujeme, ale přijímáme i hosty bez rezervace dle aktuální kapacity.</div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-question" type="button">Mohu si objednat drink na míru?</button>
+            <div class="faq-answer">Ano! Stačí říct barmanovi své preference a připravíme ti originální koktejl.</div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-question" type="button">Je možné uspořádat soukromou akci?</button>
+            <div class="faq-answer">Ano, kontaktuj nás e-mailem nebo telefonicky a domluvíme detaily.</div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-question" type="button">Nabízíte i nealkoholické koktejly?</button>
+            <div class="faq-answer">Samozřejmě! Máme široký výběr nealko drinků a mocktailů.</div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-question" type="button">Je bar bezbariérový?</button>
+            <div class="faq-answer">Ano, vstup i toalety jsou bezbariérové.</div>
+          </div>
+        </div>
+      </div>
+    </div>
   <div id="gdprBanner" class="gdpr-banner" hidden>
     <p>Tento web používá soubory cookies a služby třetích stran (Google Fonts, Google Maps) pro správné fungování. Pokračováním souhlasíte s jejich použitím.</p>
     <div class="gdpr-actions">
