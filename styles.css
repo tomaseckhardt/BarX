@@ -1197,23 +1197,69 @@
       display: grid;
       gap: 1.5rem;
     }
+    
+    /* Wizard Steps */
+    .form-step {
+      display: none;
+      animation: fadeInStep 0.4s ease forwards;
+    }
+    .form-step.active {
+      display: grid;
+      gap: 1.5rem;
+    }
+    @keyframes fadeInStep {
+      from { opacity: 0; transform: translateX(15px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    .step-indicator {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .step-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.2);
+      transition: all .3s;
+    }
+    .step-dot.active {
+      background: var(--accent2);
+      box-shadow: 0 0 10px var(--accent2);
+      transform: scale(1.2);
+    }
+    .step-dot.completed {
+      background: var(--accent1);
+      border-color: var(--accent1);
+    }
+
     .reservation-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 1rem;
+      gap: 1.5rem 1rem;
     }
     .field {
       display: flex;
       flex-direction: column;
       gap: .45rem;
+      position: relative;
+      padding-top: .8rem;
     }
     .field-wide { grid-column: 1 / -1; }
     .field label {
-      font-size: .72rem;
-      font-weight: 700;
-      letter-spacing: .14em;
+      position: absolute;
+      top: 1.8rem;
+      left: 1rem;
+      font-size: .85rem;
+      font-weight: 600;
+      letter-spacing: .08em;
       text-transform: uppercase;
-      color: var(--accent1);
+      color: var(--muted);
+      transition: all .25s cubic-bezier(.22,1,.36,1);
+      pointer-events: none;
+      z-index: 1;
     }
     .field input,
     .field select,
@@ -1223,10 +1269,141 @@
       background: rgba(13,11,18,.65);
       color: var(--text);
       border-radius: 16px;
-      padding: .95rem 1rem;
+      padding: 1.1rem 1rem .8rem 1rem;
       font: inherit;
-      transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+      transition: all .25s ease;
     }
+    .field select {
+      padding-top: 1rem;
+    }
+    
+    /* Floating Labels Logic */
+    .field input:focus + label,
+    .field input:not(:placeholder-shown) + label,
+    .field select:focus + label,
+    .field select:not([value=""]) + label,
+    .field textarea:focus + label,
+    .field textarea:not(:placeholder-shown) + label {
+      top: 0;
+      left: .5rem;
+      font-size: .68rem;
+      color: var(--accent1);
+      text-shadow: 0 0 8px rgba(200,169,110,.4);
+    }
+
+    /* Neon Glow on Focus */
+    .field input:focus,
+    .field select:focus,
+    .field textarea:focus {
+      outline: none;
+      border-color: var(--accent2);
+      background: rgba(123,63,255,.05);
+      box-shadow: 0 0 15px rgba(123,63,255,.25), inset 0 0 5px rgba(123,63,255,.1);
+      transform: translateY(-2px);
+    }
+    
+    /* Skeleton Loader Styles */
+    @keyframes skeletonPulse {
+      0% { background-color: rgba(255,255,255,.03); }
+      50% { background-color: rgba(255,255,255,.08); }
+      100% { background-color: rgba(255,255,255,.03); }
+    }
+    .skeleton {
+      animation: skeletonPulse 1.5s infinite ease-in-out;
+      border-radius: 18px;
+      min-height: 80px;
+      position: relative;
+      overflow: hidden;
+    }
+    .skeleton::after {
+      content: "";
+      position: absolute;
+      top: 0; right: 0; bottom: 0; left: 0;
+      transform: translateX(-100%);
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.03), transparent);
+      animation: skeletonShimmer 2s infinite;
+    }
+    @keyframes skeletonShimmer {
+      100% { transform: translateX(100%); }
+    }
+
+    /* Interactive Map Styles */
+    .table-map-container {
+      margin-top: 1.5rem;
+      background: rgba(0,0,0,.2);
+      border-radius: 22px;
+      padding: 1.5rem;
+      border: 1px solid rgba(255,255,255,.05);
+      position: relative;
+    }
+    .table-map {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      grid-template-rows: repeat(4, 1fr);
+      gap: 1rem;
+      aspect-ratio: 16/10;
+      position: relative;
+    }
+    .map-table {
+      background: var(--card);
+      border: 2px solid rgba(255,255,255,.1);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all .3s cubic-bezier(.22,1,.36,1);
+      position: relative;
+    }
+    .map-table:hover:not(.is-disabled) {
+      border-color: var(--accent2);
+      box-shadow: 0 0 15px rgba(123,63,255,.3);
+      transform: scale(1.05);
+    }
+    .map-table.is-selected {
+      border-color: var(--accent1);
+      background: rgba(200,169,110,.15);
+      box-shadow: 0 0 20px rgba(200,169,110,.25);
+    }
+    .map-table.is-disabled {
+      opacity: .3;
+      cursor: not-allowed;
+      border-style: dashed;
+    }
+    .map-table-icon { font-size: 1.2rem; margin-bottom: .2rem; }
+    .map-table-name { font-size: .65rem; font-weight: 800; text-transform: uppercase; color: #fff; }
+
+    /* Placement on map (layout alignment with JS IDs) */
+    .table-bar-2 { grid-area: 4 / 1 / 5 / 3; }
+    .table-window-4 { grid-area: 1 / 1 / 2 / 3; }
+    .table-lounge-4 { grid-area: 2 / 4 / 4 / 6; }
+    .table-booth-6 { grid-area: 1 / 4 / 2 / 6; }
+    .table-vip-8 { grid-area: 4 / 4 / 5 / 6; }
+
+    /* Refined Floating Labels */
+    .field select + label {
+      top: 0;
+      left: .5rem;
+      font-size: .68rem;
+      color: var(--accent1);
+    }
+    
+    .step-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.5rem;
+      letter-spacing: .05em;
+      color: #fff;
+      margin-bottom: 0.5rem;
+    }
+
+    .step-nav {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 1.5rem;
+      gap: 1rem;
+    }
+
     .field textarea {
       min-height: 108px;
       resize: vertical;

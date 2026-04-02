@@ -461,93 +461,129 @@
         </div>
 
         <form id="reservationForm" class="reservation-form">
-          <div class="reservation-grid">
-            <div class="field">
-              <label for="guestName">Jméno</label>
-              <input id="guestName" name="guestName" type="text" placeholder="Tvoje jméno" required />
-              <span id="guestNameError" class="field-error"></span>
+          <!-- Step Indicator -->
+          <div class="step-indicator">
+            <div class="step-dot active" data-step="1"></div>
+            <div class="step-dot" data-step="2"></div>
+            <div class="step-dot" data-step="3"></div>
+          </div>
+
+          <!-- STEP 1: Kdy dorazíte? -->
+          <div class="form-step active" data-step="1">
+            <h3 class="step-title">1. Kdy dorazíte?</h3>
+            <div class="reservation-grid">
+              <div class="field">
+                <input id="reservationDate" name="reservationDate" type="date" required />
+                <label for="reservationDate">Datum</label>
+                <span id="reservationDateError" class="field-error"></span>
+              </div>
             </div>
-            <div class="field">
-              <label for="guestPhone">Telefon</label>
-              <input id="guestPhone" name="guestPhone" type="tel" placeholder="+420 777 123 456" required />
-              <span id="guestPhoneError" class="field-error"></span>
+            <div class="slot-block">
+              <h3>Dostupné časy</h3>
+              <div id="slotGrid" class="slot-grid"></div>
+              <span id="slotError" class="field-error"></span>
             </div>
-            <div class="field">
-              <label for="guestEmail">E-mail</label>
-              <input id="guestEmail" name="guestEmail" type="email" placeholder="ty@bar.cz" required />
-              <span id="guestEmailError" class="field-error"></span>
+            <div class="step-nav">
+              <div></div>
+              <button type="button" class="btn btn-primary next-step" data-next="2">Pokračovat</button>
             </div>
-            <div class="field">
-              <label for="guestCount">Počet hostů</label>
-              <select id="guestCount" name="guestCount" required>
-                <option value="2">2 hosté</option>
-                <option value="3">3 hosté</option>
-                <option value="4" selected>4 hosté</option>
-                <option value="5">5 hostů</option>
-                <option value="6">6 hostů</option>
-                <option value="8">8 hostů</option>
-              </select>
-              <span id="guestCountError" class="field-error"></span>
+          </div>
+
+          <!-- STEP 2: Kdo jste? -->
+          <div class="form-step" data-step="2">
+            <h3 class="step-title">2. Kdo jste?</h3>
+            <div class="reservation-grid">
+              <div class="field">
+                <input id="guestName" name="guestName" type="text" placeholder=" " required />
+                <label for="guestName">Jméno</label>
+                <span id="guestNameError" class="field-error"></span>
+              </div>
+              <div class="field">
+                <input id="guestPhone" name="guestPhone" type="tel" placeholder=" " required />
+                <label for="guestPhone">Telefon</label>
+                <span id="guestPhoneError" class="field-error"></span>
+              </div>
+              <div class="field field-wide">
+                <input id="guestEmail" name="guestEmail" type="email" placeholder=" " required />
+                <label for="guestEmail">E-mail</label>
+                <span id="guestEmailError" class="field-error"></span>
+              </div>
             </div>
-            <div class="field">
-              <label for="reservationDrink">Pre-order drinku</label>
-              <select id="reservationDrink" name="reservationDrink" required>
-                <option value="MonstRum">MonstRum – 149 Kč</option>
-                <option value="Shockbrero">Shockbrero – 159 Kč</option>
-                <option value="Dark Velvet">Dark Velvet – 169 Kč</option>
-                <option value="Neon Opal">Neon Opal – 145 Kč</option>
-                <option value="Crimson Storm">Crimson Storm – 79 Kč</option>
-                <option value="Gold Rush">Gold Rush – 175 Kč</option>
-                <option value="Shadow Master">Shadow Master – 139 Kč</option>
-                <option value="Violet Ice">Violet Ice – 89 Kč</option>
-                <option value="Smoke Signal">Smoke Signal – 85 Kč</option>
-              </select>
-              <span class="field-hint">Drink bude připravený u stolu, když dorazíte.</span>
+            <div class="step-nav">
+              <button type="button" class="btn btn-secondary prev-step" data-prev="1">Zpět</button>
+              <button type="button" class="btn btn-primary next-step" data-next="3">Pokračovat</button>
             </div>
-            <div class="field">
-              <label for="reservationDate">Datum</label>
-              <input id="reservationDate" name="reservationDate" type="date" required />
-              <span id="reservationDateError" class="field-error"></span>
-            </div>
-            <div class="field field-wide">
-              <label for="plannedVibe" data-tip="Hodnoť náladu večera (1 = klidný, 10 = párty). Vibe 9+ = sleva 10 %. Vibe 11/10 = 100 % sleva!">Plánovaný vibe</label>
-              <div class="vibe-row">
-                <div class="vibe-slider-wrapper">
-                  <input id="plannedVibe" name="plannedVibe" type="range" min="1" max="11" step="1" value="5" />
+          </div>
+
+          <!-- STEP 3: Vylaďte si večer -->
+          <div class="form-step" data-step="3">
+            <h3 class="step-title">3. Vylaďte si večer</h3>
+            <div class="reservation-grid">
+              <div class="field">
+                <select id="guestCount" name="guestCount" required>
+                  <option value="2">2 hosté</option>
+                  <option value="3">3 hosté</option>
+                  <option value="4" selected>4 hosté</option>
+                  <option value="5">5 hostů</option>
+                  <option value="6">6 hostů</option>
+                  <option value="8">8 hostů</option>
+                </select>
+                <label for="guestCount">Počet hostů</label>
+                <span id="guestCountError" class="field-error"></span>
+              </div>
+              <div class="field">
+                <select id="reservationDrink" name="reservationDrink" required>
+                  <option value="MonstRum">MonstRum – 149 Kč</option>
+                  <option value="Shockbrero">Shockbrero – 159 Kč</option>
+                  <option value="Dark Velvet">Dark Velvet – 169 Kč</option>
+                  <option value="Neon Opal">Neon Opal – 145 Kč</option>
+                  <option value="Crimson Storm">Crimson Storm – 79 Kč</option>
+                  <option value="Gold Rush">Gold Rush – 175 Kč</option>
+                  <option value="Shadow Master">Shadow Master – 139 Kč</option>
+                  <option value="Violet Ice">Violet Ice – 89 Kč</option>
+                  <option value="Smoke Signal">Smoke Signal – 85 Kč</option>
+                </select>
+                <label for="reservationDrink">Pre-order drinku</label>
+                <span class="field-hint">Při příchodu bude na stole.</span>
+              </div>
+              <div class="field field-wide">
+                <div class="vibe-row">
+                  <div class="vibe-slider-wrapper">
+                    <input id="plannedVibe" name="plannedVibe" type="range" min="1" max="11" step="1" value="5" />
+                  </div>
+                  <span id="plannedVibeValue" class="vibe-value">5/10</span>
+                  <span id="vibeDiscountBadge" class="vibe-discount-badge" aria-live="polite">🎯 VIBE <span class="vibe-threshold">9+</span> = -10%</span>
                 </div>
-                <span id="plannedVibeValue" class="vibe-value">5/10</span>
-                <span id="vibeDiscountBadge" class="vibe-discount-badge" aria-live="polite" data-tip="Vibe 9+ = 10 % sleva. Vibe 11/10 = 100 % sleva!">🎯 VIBE <span class="vibe-threshold">9+</span> = -10%</span>
+                <label for="plannedVibe">Plánovaný vibe</label>
               </div>
-              <div id="vibeWarning" class="vibe-warning" hidden role="status" aria-live="assertive" aria-atomic="true">
-                <strong>VIBE 9+ = 10% SLEVA</strong>
-                <span>K rezervaci automaticky přidáme poznámku o 10% slevě.</span>
+              <div class="field field-wide">
+                <textarea id="reservationNote" name="reservationNote" placeholder=" "></textarea>
+                <label for="reservationNote">Poznámka</label>
+                <button id="excuseGeneratorBtn" type="button" class="excuse-btn">Vtipná omluva za zpoždění</button>
               </div>
             </div>
-            <div class="field field-wide">
-              <label for="reservationNote">Poznámka</label>
-              <textarea id="reservationNote" name="reservationNote" placeholder="Narozeniny, firemní večer, oblíbený drink předem..."></textarea>
-              <button id="excuseGeneratorBtn" type="button" class="excuse-btn" data-tip="Přidá do poznámky vtipnou omluvu za pozdní příchod">Vygenerovat vtipnou omluvu za zpoždění</button>
-              <span class="field-hint">Pro větší skupiny nebo speciální přání nám napiš poznámku.</span>
+
+            <div class="table-block">
+              <h3>Vyber si místo</h3>
+              <div class="table-map-container">
+                <div id="tableMap" class="table-map">
+                  <!-- JS dynamically fills this -->
+                </div>
+              </div>
+              <div id="tableGrid" class="table-grid" style="display:none"></div>
+              <span id="tableError" class="field-error"></span>
             </div>
-          </div>
 
-          <div class="slot-block">
-            <h3>Dostupné časy</h3>
-            <div id="slotGrid" class="slot-grid"></div>
-            <span id="slotError" class="field-error"></span>
-          </div>
-
-          <div class="table-block">
-            <h3>Vyber si místo</h3>
-            <div id="tableGrid" class="table-grid"></div>
-            <span id="tableError" class="field-error"></span>
-          </div>
-
-          <div class="reservation-actions">
-            <div id="reservationStatus" class="reservation-status" role="status" aria-live="polite" aria-atomic="true"></div>
-            <button type="submit" class="btn btn-primary" data-tip="Ověří formulář a odešle rezervaci na server">Potvrdit rezervaci</button>
+            <div class="reservation-actions">
+              <div id="reservationStatus" class="reservation-status" role="status"></div>
+              <div class="step-nav" style="width:100%; margin-top:0;">
+                <button type="button" class="btn btn-secondary prev-step" data-prev="2">Zpět</button>
+                <button type="submit" class="btn btn-primary">Potvrdit rezervaci</button>
+              </div>
+            </div>
           </div>
         </form>
+
       </div>
 
       <aside class="reservation-aside reveal">
@@ -1142,47 +1178,145 @@
       clearBlockError(document.querySelector('.table-block'), tableError);
     }
 
-    // Ověří celý formulář - kontaktní údaje, datum, tabulka
-    function validateReservationForm({ name, phone, email, guests, dateValue, table }) {
-      // Ověří celý formulář - kontaktní údaje, datum, tabulka
+    // ===== WIZARD NAVIGATION =====
+    function goToStep(stepNumber) {
+      const steps = document.querySelectorAll('.form-step');
+      const dots = document.querySelectorAll('.step-dot');
+      
+      steps.forEach(step => {
+        step.classList.remove('active');
+        if (parseInt(step.dataset.step) === stepNumber) {
+          step.classList.add('active');
+        }
+      });
+      
+      dots.forEach(dot => {
+        const dotStep = parseInt(dot.dataset.step);
+        dot.classList.remove('active', 'completed');
+        if (dotStep === stepNumber) dot.classList.add('active');
+        if (dotStep < stepNumber) dot.classList.add('completed');
+      });
+
+      // Scroll form into view
+      document.getElementById('reservation').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function validateStep(step) {
       clearValidation();
-      let firstInvalid = null;
-
-      if (!name || name.length < 2) {
-        setFieldError(guestNameInput, guestNameError, 'Zadej prosím jméno (min. 2 znaky).');
-        firstInvalid = firstInvalid || guestNameInput;
-      }
-      if (!isValidPhone(phone)) {
-        setFieldError(guestPhoneInput, guestPhoneError, 'Zadej platné telefonní číslo.');
-        firstInvalid = firstInvalid || guestPhoneInput;
-      }
-      if (!isValidEmail(email)) {
-        setFieldError(guestEmailInput, guestEmailError, 'Zadej platný e-mail.');
-        firstInvalid = firstInvalid || guestEmailInput;
-      }
-      if (!Number.isInteger(guests) || guests < 1) {
-        setFieldError(guestCountInput, guestCountError, 'Vyber prosím počet hostů.');
-        firstInvalid = firstInvalid || guestCountInput;
-      }
-      if (!dateValue) {
-        setFieldError(reservationDateInput, reservationDateError, 'Vyber prosím datum rezervace.');
-        firstInvalid = firstInvalid || reservationDateInput;
-      }
-      if (!state.selectedSlot) {
-        setBlockError(document.querySelector('.slot-block'), slotError, 'Vyber prosím čas rezervace.');
-        firstInvalid = firstInvalid || slotGrid;
-      }
-      if (!state.selectedTable || !table) {
-        setBlockError(document.querySelector('.table-block'), tableError, 'Vyber prosím konkrétní stůl.');
-        firstInvalid = firstInvalid || tableGrid;
-      }
-
-      if (firstInvalid) {
-        firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        if (typeof firstInvalid.focus === 'function') firstInvalid.focus();
-        return false;
+      if (step === 1) {
+        if (!reservationDateInput.value) {
+          setFieldError(reservationDateInput, reservationDateError, 'Vyber prosím datum.');
+          return false;
+        }
+        if (!state.selectedSlot) {
+          setBlockError(document.querySelector('.slot-block'), slotError, 'Vyber prosím čas.');
+          return false;
+        }
+      } else if (step === 2) {
+        const name = guestNameInput.value.trim();
+        const phone = guestPhoneInput.value.trim();
+        const email = guestEmailInput.value.trim();
+        let valid = true;
+        if (name.length < 2) {
+          setFieldError(guestNameInput, guestNameError, 'Zadej prosím jméno.');
+          valid = false;
+        }
+        if (!isValidPhone(phone)) {
+          setFieldError(guestPhoneInput, guestPhoneError, 'Neplatný telefon.');
+          valid = false;
+        }
+        if (!isValidEmail(email)) {
+          setFieldError(guestEmailInput, guestEmailError, 'Neplatný e-mail.');
+          valid = false;
+        }
+        return valid;
+      } else if (step === 3) {
+        if (!state.selectedTable) {
+          setBlockError(document.querySelector('.table-block'), tableError, 'Vyber prosím stůl na mapě.');
+          return false;
+        }
       }
       return true;
+    }
+
+    // ===== SKELETON LOADERS =====
+    function showSkeletons(container, count = 3) {
+      container.innerHTML = '';
+      for (let i = 0; i < count; i++) {
+        const skeleton = document.createElement('div');
+        skeleton.className = 'skeleton';
+        container.appendChild(skeleton);
+      }
+    }
+
+    // ===== INTERACTIVE MAP =====
+    function renderTableMap() {
+      const mapContainer = document.getElementById('tableMap');
+      if (!mapContainer) return;
+      
+      // Skeleton loader for the map
+      showSkeletons(mapContainer, 5);
+      
+      setTimeout(() => {
+        mapContainer.innerHTML = '';
+        const guests = Number(guestCountInput.value || 0);
+
+        TABLES.forEach(table => {
+          const tableEl = document.createElement('div');
+          const tooSmall = table.seats < guests;
+          const reserved = reservationDateInput.value && state.selectedSlot && isReserved(reservationDateInput.value, state.selectedSlot, table.id);
+          
+          tableEl.className = 'map-table table-' + table.id;
+          if (tooSmall || reserved) tableEl.classList.add('is-disabled');
+          if (state.selectedTable === table.id) tableEl.classList.add('is-selected');
+
+          tableEl.innerHTML = `
+            <span class="map-table-icon">${table.seats >= 6 ? '🛋️' : '🪑'}</span>
+            <span class="map-table-name">${table.name}</span>
+          `;
+
+          tableEl.addEventListener('click', () => {
+            if (tooSmall || reserved) {
+              showToast(reserved ? 'Tento stůl je již obsazen.' : 'Tento stůl je pro váš počet hostů příliš malý.', 'error');
+              return;
+            }
+            state.selectedTable = table.id;
+            clearBlockError(document.querySelector('.table-block'), tableError);
+            renderTableMap();
+            updateSummary();
+          });
+
+          mapContainer.appendChild(tableEl);
+        });
+      }, 500);
+    }
+
+    // ===== CONFETTI EFFECT =====
+    function fireConfetti() {
+      const colors = ['#7b3fff', '#ff4d6d', '#c8a96e', '#00d4aa'];
+      for (let i = 0; i < 60; i++) {
+        const p = document.createElement('div');
+        p.style.position = 'fixed';
+        p.style.left = Math.random() * 100 + 'vw';
+        p.style.top = '-10px';
+        p.style.width = Math.random() * 8 + 4 + 'px';
+        p.style.height = Math.random() * 8 + 4 + 'px';
+        p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        p.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+        p.style.zIndex = '13000';
+        p.style.pointerEvents = 'none';
+        document.body.appendChild(p);
+
+        const anim = p.animate([
+          { transform: 'translate(0, 0) rotate(0deg)', opacity: 1 },
+          { transform: `translate(${(Math.random() - 0.5) * 300}px, 100vh) rotate(${Math.random() * 720}deg)`, opacity: 0 }
+        ], {
+          duration: Math.random() * 2000 + 1500,
+          easing: 'cubic-bezier(0, .9, .57, 1)',
+          delay: Math.random() * 500
+        });
+        anim.onfinish = () => p.remove();
+      }
     }
 
     function updateSummary() {
@@ -1266,42 +1400,50 @@
 
     function renderSlots() {
       const slots = getSlotsForDate(reservationDateInput.value);
-      slotGrid.innerHTML = '';
-      if (!slots.length) return;
-
-      slots.forEach(slot => {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'slot-btn';
-        const hh = isHappyHour(reservationDateInput.value, slot.value);
-        if (hh) button.classList.add('is-happy-hour');
-        const availableTables = TABLES.filter(table => table.seats >= Number(guestCountInput.value || 0))
-          .filter(table => !isReserved(reservationDateInput.value, slot.value, table.id)).length;
-        if (availableTables === 0) {
-          button.classList.add('is-disabled');
-        }
-        if (state.selectedSlot === slot.value) {
-          button.classList.add('is-selected');
-        }
-        const hhBadge = hh ? '<span class="hh-tag">🍹 Happy Hour</span>' : '';
-        button.innerHTML = '<strong>' + slot.label + '</strong><span>' + slot.meta + '</span>' + hhBadge + '<small>' + availableTables + ' volných</small>';
-        button.addEventListener('click', () => {
-          if (availableTables === 0) return;
-          state.selectedSlot = slot.value;
-          clearBlockError(document.querySelector('.slot-block'), slotError);
-          if (state.selectedTable && isReserved(reservationDateInput.value, state.selectedSlot, state.selectedTable)) {
-            state.selectedTable = '';
+      if (!slots.length) {
+        slotGrid.innerHTML = '';
+        return;
+      }
+      
+      showSkeletons(slotGrid, 4);
+      
+      setTimeout(() => {
+        slotGrid.innerHTML = '';
+        slots.forEach(slot => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'slot-btn';
+          const hh = isHappyHour(reservationDateInput.value, slot.value);
+          if (hh) button.classList.add('is-happy-hour');
+          const availableTables = TABLES.filter(table => table.seats >= Number(guestCountInput.value || 0))
+            .filter(table => !isReserved(reservationDateInput.value, slot.value, table.id)).length;
+          if (availableTables === 0) {
+            button.classList.add('is-disabled');
           }
-          renderSlots();
-          renderTables();
-          updateSummary();
-          setStatus('');
+          if (state.selectedSlot === slot.value) {
+            button.classList.add('is-selected');
+          }
+          const hhBadge = hh ? '<span class="hh-tag">🍹 Happy Hour</span>' : '';
+          button.innerHTML = '<strong>' + slot.label + '</strong><span>' + slot.meta + '</span>' + hhBadge + '<small>' + availableTables + ' volných</small>';
+          button.addEventListener('click', () => {
+            if (availableTables === 0) return;
+            state.selectedSlot = slot.value;
+            clearBlockError(document.querySelector('.slot-block'), slotError);
+            if (state.selectedTable && isReserved(reservationDateInput.value, state.selectedSlot, state.selectedTable)) {
+              state.selectedTable = '';
+            }
+            renderSlots();
+            renderTables();
+            updateSummary();
+            setStatus('');
+          });
+          slotGrid.appendChild(button);
         });
-        slotGrid.appendChild(button);
-      });
+      }, 400);
     }
 
     function renderTables() {
+      renderTableMap();
       tableGrid.innerHTML = '';
       const guests = Number(guestCountInput.value || 0);
       TABLES.forEach(table => {
@@ -1714,13 +1856,14 @@
         const dateValue = reservationDateInput.value;
         const table = getSelectedTable();
 
-        if (!validateReservationForm({ name, phone, email, guests, dateValue, table })) {
-          setStatus('Prosím oprav označená pole a zkus to znovu.', 'error');
+        if (!validateStep(1) || !validateStep(2) || !validateStep(3)) {
+          setStatus('Prosím opravte chyby ve formuláři.', 'error');
           return;
         }
+
         if (table.seats < guests) {
-          setBlockError(document.querySelector('.table-block'), tableError, 'Vybraný stůl je pro zadaný počet hostů příliš malý.');
-          setStatus('Vybraný stůl je pro zadaný počet hostů příliš malý.', 'error');
+          setBlockError(document.querySelector('.table-block'), tableError, 'Vybraný stůl je příliš malý.');
+          setStatus('Vybraný stůl je příliš malý.', 'error');
           return;
         }
         if (isReserved(dateValue, state.selectedSlot, state.selectedTable)) {
@@ -1796,6 +1939,21 @@
       initParticles();
     });
 
+    document.querySelectorAll('.next-step').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const step = parseInt(btn.closest('.form-step').dataset.step);
+        if (validateStep(step)) {
+          goToStep(parseInt(btn.dataset.next));
+        }
+      });
+    });
+
+    document.querySelectorAll('.prev-step').forEach(btn => {
+      btn.addEventListener('click', () => {
+        goToStep(parseInt(btn.dataset.prev));
+      });
+    });
+
     async function initReservationSystem() {
       restoreFormDraft();
       setMinDate();
@@ -1803,6 +1961,7 @@
       if (!plannedVibeInput.value) plannedVibeInput.value = '5';
       updateVibeUI();
       updateSummary();
+      goToStep(1); // Start with step 1
       try {
         await loadReservations();
         refreshReservationUI();
@@ -1888,6 +2047,11 @@
       qrModal.classList.add('is-open');
       qrModal.setAttribute('aria-hidden', 'false');
       qrModal.querySelector('.qr-modal-close').focus();
+      
+      // Fire confetti on success
+      if (!isDetail) {
+        fireConfetti();
+      }
     }
 
     document.addEventListener('click', function(e) {
