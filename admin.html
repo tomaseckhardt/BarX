@@ -64,14 +64,14 @@
         </div>
         <div class="toolbar-right">
           <div class="view-tabs">
-            <button id="tabTable" class="view-tab is-active" type="button" data-view="table" data-tip="Zobrazit jako tabulku">Tabulka</button>
-            <button id="tabCards" class="view-tab" type="button" data-view="cards" data-tip="Zobrazit jako karty">Karty</button>
+            <button id="tabTable" class="view-tab" type="button" data-view="table" data-tip="Zobrazit jako tabulku">Tabulka</button>
+            <button id="tabCards" class="view-tab is-active" type="button" data-view="cards" data-tip="Zobrazit jako karty">Karty</button>
           </div>
           <div id="autoRefreshInfo" class="auto-refresh">Auto refresh: každých 30s</div>
           <div id="status" class="status" role="status" aria-live="polite" aria-atomic="true"></div>
         </div>
       </div>
-      <div id="tableView" class="view-content is-active table-wrap">
+      <div id="tableView" class="view-content table-wrap">
         <table>
           <thead>
             <tr>
@@ -93,7 +93,7 @@
         </table>
         <div id="emptyState" class="empty" hidden>Zatím tu nejsou žádné rezervace.</div>
       </div>
-      <div id="cardsView" class="view-content">
+      <div id="cardsView" class="view-content is-active">
         <div class="cards-sort-row">
           <button id="dateSortToggleCards" class="date-sort-chip" type="button" aria-label="Řazení podle data a času" data-tip="Řazení: neutral, vzestupně, sestupně">
             Datum <span id="dateSortIndicatorCards" aria-hidden="true">•</span>
@@ -149,7 +149,7 @@
     // ===== STATE VARIABLES =====
     // Veškeré stránkové stavy
     let reservations = [];          // Veškeré rezervace ze serveru
-    let currentView = 'table';      // Aktuální pohled (table/cards)
+    let currentView = 'cards';      // Aktuální pohled (table/cards)
     let dateSortMode = 'none';      // Režim řazení data/času: 'none', 'asc', 'desc'
 
     // Aktualizuje UI indikátor řazení data (•/↑/↓)
