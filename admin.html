@@ -105,6 +105,7 @@
     </section>
   </div>
 
+  <script src="supabase-config.js"></script>
   <script>
     // ===== BarX Admin Dashboard =====
     // Správa rezervací se live filtrováním, řazením a rychlými akcemi
@@ -236,20 +237,10 @@
 
     // API wrapper - vrací parsed JSON nebo vyhodí chybu
     async function apiRequest(url, options = {}) {
-      const response = await fetch(url, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(options.headers || {})
-        },
-        ...options
-      });
-      const payload = (response.headers.get('content-type') || '').includes('application/json')
-        ? await response.json()
-        : null;
-      if (!response.ok) {
-        throw new Error(payload && payload.error ? payload.error : 'Nepodařilo se načíst data.');
+      if (!window.BARX_DATA_API || typeof window.BARX_DATA_API.request !== 'function') {
+        throw new Error('Supabase klient neni dostupny. Zkontroluj soubor supabase-config.js.');
       }
-      return payload;
+      return window.BARX_DATA_API.request(url, options);
     }
 
     // Formátuje datum a čas pro zobrazení
@@ -559,7 +550,7 @@
     }, 30000);
 
     loadReservations().catch(error => {
-      setStatus('Server pro rezervace neběží. Spusť prosím localhost server.', 'error');
+      setStatus('Nepodarilo se nacist rezervace. Zkontroluj Supabase konfiguraci.', 'error');
       console.error(error);
     });
   </script>

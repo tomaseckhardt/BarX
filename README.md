@@ -1,13 +1,17 @@
 # BarX — Craft Cocktail Bar Praha
 
-Rezervační systém s veřejným webem a admin dashboardem. Jednoduchý Node.js server bez externích závislostí, data v JSON souboru.
+Rezervační systém s veřejným webem a admin dashboardem. Projekt je připravený pro statický hosting na GitHub Pages, data běží přímo přes Supabase Data API.
 
-## Rychlý start
+## Rychlý start (GitHub Pages)
 
-```bash
-npm start              # Spustí server na http://localhost:3000
-npm run test:e2e       # Spustí Playwright E2E testy
-```
+1. V Supabase vytvoř tabulku `reservations` se správnými sloupci.
+2. Otevři `supabase-config.js` a nastav:
+    - `url`
+    - `publishableKey` (jen public key, nikdy secret/service role)
+3. Pushni repozitář na GitHub.
+4. Zapni GitHub Pages (Deploy from branch: `main`, root).
+
+Po nasazení běží web čistě staticky bez Node serveru.
 
 ## Struktura projektu
 
@@ -15,8 +19,9 @@ npm run test:e2e       # Spustí Playwright E2E testy
 ├── index.html          Veřejný web (menu, rezervace, kontakt)
 ├── admin.html          Admin dashboard (přehled rezervací)
 ├── styles.css          Sdílené styly pro obě stránky
-├── server.js           Node.js HTTP server + REST API
-├── reservations.json   Datový soubor (generuje se automaticky)
+├── supabase-config.js  Konfigurace + API vrstva pro Supabase
+├── server.js           Volitelný lokální Node backend (není nutný pro GitHub Pages)
+├── reservations.json   Starý lokální datový soubor (pro GitHub Pages se nepoužívá)
 ├── package.json        Skripty a závislosti
 ├── tests/              Playwright E2E testy
 │   ├── playwright.config.js
@@ -36,14 +41,33 @@ npm run test:e2e       # Spustí Playwright E2E testy
 |---------|---------|
 | **index.html** | Drink menu s filtry a modály, rezervační formulář s live souhrnem, vibe systém se slevami |
 | **admin.html** | Tabulkový/kartový přehled rezervací, filtrování, řazení, rychlé akce (volat → potvrdit → hotovo → smazat) |
-| **server.js** | REST API, statický file server, auto-kompletace starých rezervací (background job 5 min) |
+| **supabase-config.js** | Přímé CRUD volání na Supabase Data API bez backendu |
 
-## Konfigurace
+## Konfigurace pro GitHub Pages
 
-| Proměnná prostředí | Default | Popis |
-|---------------------|---------|-------|
-| `PORT` | `3000` | Port serveru |
-| `ALLOWED_ORIGINS` | `http://localhost:3000,http://127.0.0.1:3000` | Povolené CORS originy (čárkou oddělené) |
+V souboru `supabase-config.js` nastav:
+
+- `url`: URL projektu, např. `https://xyzcompany.supabase.co`
+- `publishableKey`: Supabase publishable key
+- `table`: název tabulky (default `reservations`)
+
+## RLS policies (doporučeno)
+
+Pro browser-only variantu nastav v Supabase RLS policies tak, aby frontend mohl číst a měnit jen to, co potřebuje. Minimálně:
+
+- `SELECT` pro veřejné čtení rezervací (nebo jen pro autorizované role)
+- `INSERT` pro vytváření rezervací
+- `UPDATE` pro admin akce (status/note)
+- `DELETE` pro rušení rezervací
+
+Bez správných RLS policy budou požadavky z GitHub Pages končit chybou 401/403.
+
+## Lokální testy (volitelné)
+
+```bash
+npm install
+npm run test:e2e
+```
 
 ## Další dokumentace
 

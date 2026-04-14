@@ -813,6 +813,7 @@
   <!-- cursor glow -->
   <div id="cursor-glow"></div>
 
+  <script src="supabase-config.js"></script>
   <script>
     // ===== BarX Public Website =====
     // Drink menu, drink modals, a rezervační systém
@@ -1017,21 +1018,11 @@
     // API wrapper - vrací parsed JSON nebo vyhodí chybu
     // ===== API & DATA LOADING =====
     async function apiRequest(url, options = {}) {
-      // API wrapper - vrací parsed JSON nebo vyhází chybu
-      const response = await fetch(url, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(options.headers || {})
-        },
-        ...options
-      });
-
-      const isJson = (response.headers.get('content-type') || '').includes('application/json');
-      const payload = isJson ? await response.json() : null;
-      if (!response.ok) {
-        throw new Error(payload && payload.error ? payload.error : 'Nepodařilo se spojit se serverem.');
+      // API wrapper kompatibilní s puvodnim API rozhranim
+      if (!window.BARX_DATA_API || typeof window.BARX_DATA_API.request !== 'function') {
+        throw new Error('Supabase klient neni dostupny. Zkontroluj soubor supabase-config.js.');
       }
-      return payload;
+      return window.BARX_DATA_API.request(url, options);
     }
 
     // Načte všechny rezervace ze serveru
