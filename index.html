@@ -634,10 +634,12 @@
           </div>
         </div>
 
+        <!--
         <div class="saved-reservations">
           <h3>Moje rezervace</h3>
           <div id="savedReservations" class="saved-list"></div>
         </div>
+        -->
 
         <div class="booking-tips">
           <h3>Jak to funguje</h3>
@@ -744,7 +746,7 @@
 
   <!-- FOOTER -->
   <footer>
-    <p>© 2026 <span>BarX</span> · Craft Cocktail Bar · Praha · <a class="admin-link" href="/admin.html">Admin přehled</a> · Pij zodpovědně 🍹</p>
+    <p>© 2026 <span>BarX</span> · Craft Cocktail Bar · Praha · <a class="admin-link" href="admin.html">Admin přehled</a> · Pij zodpovědně 🍹</p>
   </footer>
 
   <!-- TOAST CONTAINER -->
@@ -1474,6 +1476,7 @@
     }
 
     function renderSavedReservations() {
+      if (!savedReservations) return;
       const reservations = [...state.reservations].sort((a, b) => {
         return new Date(a.date + 'T' + a.slot) - new Date(b.date + 'T' + b.slot);
       });
