@@ -554,6 +554,7 @@
                   <span id="plannedVibeValue" class="vibe-value">5/10</span>
                   <span id="vibeDiscountBadge" class="vibe-discount-badge" aria-live="polite">🎯 VIBE <span class="vibe-threshold">9+</span> = -10%</span>
                 </div>
+                <div id="vibeWarning" class="vibe-warning" hidden></div>
                 <label for="plannedVibe">Plánovaný vibe</label>
               </div>
               <div class="field field-wide">
@@ -847,7 +848,16 @@
     const BASE_SPEND_PER_GUEST = 520;          // Základ pro odhad ceny
     const VIBE_SPEND_STEP = 0.08;             // Nárůst ceny za bod vibe
 
-    // ===== DOM REFERENCES =====
+    // ===== SECURITY & UTILITIES =====
+    // Escapuje HTML speciální znaky aby se zabránilo XSS
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = String(text);
+      return div.innerHTML;
+    }
+
+    // ===== INITIALIZATION & DOM SETUP =====
     // Odkazy na všechny klíčové DOM prvky
     const cursorGlow = document.getElementById('cursor-glow');
     const canvas = document.getElementById('hero-canvas');
@@ -1492,14 +1502,14 @@
         wrapper.setAttribute('aria-label', 'Zobrazit detail rezervace ' + item.name);
         wrapper.innerHTML =
           '<div class="saved-item-head">' +
-            '<div><strong>' + item.name + '</strong><div class="saved-badge">Rezervace potvrzena</div></div>' +
-            '<div class="saved-badge">' + item.slot + '</div>' +
+            '<div><strong>' + escapeHtml(item.name) + '</strong><div class="saved-badge">Rezervace potvrzena</div></div>' +
+            '<div class="saved-badge">' + escapeHtml(item.slot) + '</div>' +
           '</div>' +
           '<div class="saved-meta">' +
             formatDate(item.date) + '<br>' +
-            tableName + '<br>' +
-            item.guests + ' hostů · ' + item.phone + '<br>' +
-            'Drink: ' + (item.drink || 'neuveden') +
+            escapeHtml(tableName) + '<br>' +
+            item.guests + ' hostů · ' + escapeHtml(item.phone) + '<br>' +
+            'Drink: ' + escapeHtml(item.drink || 'neuveden') +
           '</div>' +
           '<div class="saved-item-hint">Klikni pro detail a QR kód</div>' +
           '<div class="saved-actions">' +
@@ -1722,6 +1732,11 @@
       element.classList.add('reveal');
       element.style.transitionDelay = ((index % 5) * 0.08) + 's';
       revealObserver.observe(element);
+    });
+
+    // Reservation form must stay immediately usable (also for hash navigation and tests)
+    document.querySelectorAll('.reservation-panel, .reservation-aside').forEach(element => {
+      element.classList.add('visible');
     });
 
     const titleObserver = new IntersectionObserver(entries => {
@@ -2036,13 +2051,13 @@
         ? 'Ukažte QR kód při příchodu do baru'
         : 'Ukažte tento QR kód při příchodu do baru';
       qrDetails.innerHTML =
-        '<div class="qr-detail-row"><span>Jméno</span><strong>' + info.name + '</strong></div>' +
+        '<div class="qr-detail-row"><span>Jméno</span><strong>' + escapeHtml(info.name) + '</strong></div>' +
         '<div class="qr-detail-row"><span>Datum</span><strong>' + formatDate(info.date) + '</strong></div>' +
-        '<div class="qr-detail-row"><span>Čas</span><strong>' + info.slot + '</strong></div>' +
-        '<div class="qr-detail-row"><span>Stůl</span><strong>' + info.table + '</strong></div>' +
-        '<div class="qr-detail-row"><span>Pre-order</span><strong>' + info.drink + '</strong></div>' +
+        '<div class="qr-detail-row"><span>Čas</span><strong>' + escapeHtml(info.slot) + '</strong></div>' +
+        '<div class="qr-detail-row"><span>Stůl</span><strong>' + escapeHtml(info.table) + '</strong></div>' +
+        '<div class="qr-detail-row"><span>Pre-order</span><strong>' + escapeHtml(info.drink) + '</strong></div>' +
         (info.hasDiscount ? '<div class="qr-detail-row qr-discount"><span>Sleva</span><strong>10% VIP Vibe</strong></div>' : '') +
-        '<div class="qr-detail-row qr-id"><span>ID</span><strong>' + info.id.slice(0, 8) + '</strong></div>';
+        '<div class="qr-detail-row qr-id"><span>ID</span><strong>' + escapeHtml(info.id.slice(0, 8)) + '</strong></div>';
       qrModal.hidden = false;
       qrModal.classList.add('is-open');
       qrModal.setAttribute('aria-hidden', 'false');

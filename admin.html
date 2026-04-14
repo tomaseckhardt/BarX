@@ -277,6 +277,15 @@
       statDrink.textContent = topDrink ? topDrink[0] : '-';
     }
 
+    // ===== HTML ESCAPING & SECURITY =====
+    // Escapuje HTML speciální znaky aby se zabránilo XSS
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = String(text);
+      return div.innerHTML;
+    }
+
     // ===== CORE FILTERING & SORTING =====
     // Filtruje rezervace podle stavu a hledaného termínu
     // Aplikuje řazení: dateSortMode (ručí), nebo sortBy dropdown
@@ -289,6 +298,7 @@
           return false;
         }
         if (!term) return true;
+        // Case-insensitive search na všech polích
         return [
           item.name,
           item.phone,
@@ -406,13 +416,13 @@
         const tr = document.createElement('tr');
         const status = normalizeStatus(item.status);
         tr.innerHTML =
-          '<td><strong>' + item.name + '</strong><br><span class="badge status-' + status + '">' + statusLabel(status) + '</span></td>' +
-          '<td>' + item.phone + '<br><span class="muted">' + item.email + '</span></td>' +
+          '<td><strong>' + escapeHtml(item.name) + '</strong><br><span class="badge status-' + status + '">' + statusLabel(status) + '</span></td>' +
+          '<td>' + escapeHtml(item.phone) + '<br><span class="muted">' + escapeHtml(item.email) + '</span></td>' +
           '<td>' + formatDate(item.date, item.slot) + '<br><span class="muted">vytvořeno ' + new Date(item.createdAt).toLocaleString('cs-CZ') + '</span></td>' +
-          '<td><span class="table-highlight" title="' + (TABLE_LABELS[item.tableId] || item.tableId) + '">' + (TABLE_LABELS[item.tableId] || item.tableId) + '</span></td>' +
-          '<td>' + (item.drink || '-') + '</td>' +
+          '<td><span class="table-highlight" title="' + escapeHtml(TABLE_LABELS[item.tableId] || item.tableId) + '">' + escapeHtml(TABLE_LABELS[item.tableId] || item.tableId) + '</span></td>' +
+          '<td>' + escapeHtml(item.drink || '-') + '</td>' +
           '<td>' + item.guests + '</td>' +
-          '<td title="' + (item.note || '') + '">' + (item.note || '<span class="muted">bez poznámky</span>') + '</td>' +
+          '<td title="' + escapeHtml(item.note || '') + '">' + (item.note ? escapeHtml(item.note) : '<span class="muted">bez poznámky</span>') + '</td>' +
           '<td><div class="row-actions">' +
             '<button class="mini-btn is-muted" type="button" data-action="call" aria-label="Zavolat" data-tip="Zavolat hostu">☎</button>' +
             '<button class="mini-btn is-success" type="button" data-action="confirm" aria-label="Potvrdit" data-tip="Potvrdit rezervaci">✓</button>' +
@@ -448,18 +458,18 @@
         card.className = 'reservation-card ' + state;
         card.innerHTML =
           '<div class="card-head">' +
-            '<div class="card-name">' + item.name + '</div>' +
+            '<div class="card-name">' + escapeHtml(item.name) + '</div>' +
             '<div class="card-tags">' +
               '<span class="card-tag ' + state + '">' + formatRelativeState(state) + '</span>' +
               '<span class="badge status-' + status + '">' + statusLabel(status) + '</span>' +
-              '<span class="card-tag">' + (item.drink || '-') + '</span>' +
+              '<span class="card-tag">' + escapeHtml(item.drink || '-') + '</span>' +
             '</div>' +
           '</div>' +
-          '<div class="card-table-highlight">Stůl: ' + (TABLE_LABELS[item.tableId] || item.tableId) + '</div>' +
+          '<div class="card-table-highlight">Stůl: ' + escapeHtml(TABLE_LABELS[item.tableId] || item.tableId) + '</div>' +
           '<div class="card-meta">' +
             formatDate(item.date, item.slot) + '<br>' +
-            item.guests + ' hostů · ' + item.phone + '<br>' +
-            (item.note ? item.note : '<span class="muted">bez poznámky</span>') +
+            item.guests + ' hostů · ' + escapeHtml(item.phone) + '<br>' +
+            (item.note ? escapeHtml(item.note) : '<span class="muted">bez poznámky</span>') +
           '</div>' +
           '<div class="row-actions">' +
             '<button class="mini-btn is-muted" type="button" data-action="call" aria-label="Zavolat" data-tip="Zavolat hostu">☎</button>' +

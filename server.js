@@ -55,9 +55,26 @@ const MIME_TYPES = {
 // ===== RATE LIMITER =====
 const RATE_LIMIT = {
   windowMs: 60_000,
-  maxRequests: 30
+  maxRequests: 300
 };
 const rateLimitStore = new Map();
+
+// ===== FILE LOCKING (prevence race conditions) =====
+// Jednoduchý in-memory mutex pro operace s files
+const fileLocks = new Map();
+
+async function withFileLock(fn) {
+  // Čeká na dostupnost lock a pak spustí funkci
+  while (fileLocks.get('data-file')) {
+    await new Promise(resolve => setTimeout(resolve, 1));
+  }
+  fileLocks.set('data-file', true);
+  try {
+    return await fn();
+  } finally {
+    fileLocks.delete('data-file');
+  }
+}
 
 function isRateLimited(ip) {
   const now = Date.now();
@@ -383,17 +400,30 @@ async function handleApi(req, res, pathname) {
       return;
     }
 
-    const reservations = await readReservations();
-    const duplicate = reservations.find(item => item.date === payload.date && item.slot === payload.slot && item.tableId === payload.tableId);
-    if (duplicate) {
-      sendJson(req, res, 409, { error: 'Tenhle stůl je v daném čase už rezervovaný.' });
-      return;
-    }
+    try {
+      const result = await withFileLock(async () => {
+        const reservations = await readReservations();
+        const duplicate = reservations.find(item => item.date === payload.date && item.slot === payload.slot && item.tableId === payload.tableId);
+        if (duplicate) {
+          return { error: 'Tenhle stůl je v daném čase už rezervovaný.', statusCode: 409 };
+        }
 
-    const reservation = normalizeReservation(payload);
-    reservations.push(reservation);
-    await writeReservations(reservations);
-    sendJson(req, res, 201, { reservation });
+        const reservation = normalizeReservation(payload);
+        reservations.push(reservation);
+        await writeReservations(reservations);
+        return { reservation, statusCode: 201 };
+      });
+
+      if (result.error) {
+        sendJson(req, res, result.statusCode, { error: result.error });
+        return;
+      }
+
+      sendJson(req, res, result.statusCode, { reservation: result.reservation });
+    } catch (error) {
+      logError(error, 'POST /api/reservations');
+      sendJson(req, res, 500, { error: 'Chyba při vytváření rezervace.' });
+    }
     return;
   }
 

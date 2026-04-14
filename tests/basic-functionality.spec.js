@@ -1,4 +1,12 @@
 const { test, expect } = require('@playwright/test');
+const {
+  openReservation,
+  pickDateAndSlot,
+  goToStep2,
+  fillContact,
+  goToStep3,
+  pickFirstAvailableTable
+} = require('./helpers/reservation-flow');
 
 test('zakladni funkcnost bez potvrzeni rezervace', async ({ page }) => {
   test.setTimeout(90_000);
@@ -11,33 +19,30 @@ test('zakladni funkcnost bez potvrzeni rezervace', async ({ page }) => {
   await expect(page.locator('.drink-card:has-text("Crimson Storm")')).toBeVisible();
   await expect(page.locator('.drink-card:has-text("MonstRum")')).toBeHidden();
 
-  await page.goto('/#reservation');
-  await expect(page.locator('#reservationForm')).toBeVisible();
+  await openReservation(page);
 
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   const tomorrowIso = tomorrow.toISOString().split('T')[0];
 
-  await page.locator('#reservationDate').fill(tomorrowIso);
-  await page.locator('#reservationDate').dispatchEvent('change');
+  await pickDateAndSlot(page, tomorrowIso);
+  await goToStep2(page);
+  await fillContact(page, {
+    name: 'Basic Flow',
+    phone: '+420 777 123456',
+    email: 'basic-flow@example.cz'
+  });
+  await goToStep3(page);
+
   await page.selectOption('#guestCount', '3');
-
-  await expect(page.locator('#slotGrid .slot-btn').first()).toBeVisible();
-
-  const firstAvailableSlot = page.locator('#slotGrid .slot-btn:not(.is-disabled)').first();
-  await expect(firstAvailableSlot).toBeVisible();
-  await firstAvailableSlot.click();
-
-  const firstAvailableTable = page.locator('#tableGrid .table-option:not(.is-disabled)').first();
-  await expect(firstAvailableTable).toBeVisible();
-  await firstAvailableTable.click();
+  await pickFirstAvailableTable(page);
 
   await page.locator('#plannedVibe').evaluate((el) => {
     el.value = '9';
     el.dispatchEvent(new Event('input', { bubbles: true }));
   });
 
-  await expect(page.locator('#vibeWarning')).toBeVisible();
+  await expect(page.locator('#vibeDiscountBadge')).toContainText('SPLNĚNO');
   await expect(page.locator('#summaryDate')).not.toHaveText('Vyber datum');
   await expect(page.locator('#summaryTime')).not.toHaveText('Vyber čas');
   await expect(page.locator('#summaryTable')).not.toHaveText('Vyber místo');

@@ -4,9 +4,9 @@ test('API PATCH meni status rezervace', async ({ request }) => {
   test.setTimeout(60_000);
 
   const stamp = Date.now();
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowIso = tomorrow.toISOString().split('T')[0];
+  const future = new Date();
+  future.setDate(future.getDate() + ((stamp % 120) + 9));
+  const tomorrowIso = future.toISOString().split('T')[0];
 
   const createResponse = await request.post('/api/reservations', {
     data: {

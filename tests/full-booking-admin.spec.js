@@ -1,4 +1,12 @@
 const { test, expect } = require('@playwright/test');
+const {
+  openReservation,
+  pickDateAndSlot,
+  goToStep2,
+  fillContact,
+  goToStep3,
+  pickFirstAvailableTable
+} = require('./helpers/reservation-flow');
 
 test('kompletni booking flow se zobrazenim v adminu', async ({ page }) => {
   test.setTimeout(90_000);
@@ -8,27 +16,20 @@ test('kompletni booking flow se zobrazenim v adminu', async ({ page }) => {
   const guestPhone = '+420 777 ' + String(stamp).slice(-6);
   const guestEmail = 'e2e+' + stamp + '@barx.cz';
 
-  await page.goto('/#reservation');
+  await openReservation(page);
 
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowIso = tomorrow.toISOString().split('T')[0];
+  const date = new Date();
+  date.setDate(date.getDate() + ((stamp % 120) + 14));
+  const tomorrowIso = date.toISOString().split('T')[0];
 
-  await page.fill('#guestName', guestName);
-  await page.fill('#guestPhone', guestPhone);
-  await page.fill('#guestEmail', guestEmail);
+  await pickDateAndSlot(page, tomorrowIso);
+  await goToStep2(page);
+  await fillContact(page, { name: guestName, phone: guestPhone, email: guestEmail });
+  await goToStep3(page);
+
   await page.selectOption('#guestCount', '3');
   await page.selectOption('#reservationDrink', 'MonstRum');
-  await page.fill('#reservationDate', tomorrowIso);
-  await page.dispatchEvent('#reservationDate', 'change');
-
-  const firstAvailableSlot = page.locator('#slotGrid .slot-btn:not(.is-disabled)').first();
-  await expect(firstAvailableSlot).toBeVisible();
-  await firstAvailableSlot.click();
-
-  const firstAvailableTable = page.locator('#tableGrid .table-option:not(.is-disabled)').first();
-  await expect(firstAvailableTable).toBeVisible();
-  await firstAvailableTable.click();
+  await pickFirstAvailableTable(page);
 
   await page.locator('#plannedVibe').evaluate((el) => {
     el.value = '9';
