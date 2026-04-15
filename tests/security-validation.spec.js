@@ -38,6 +38,7 @@ test('XSS prevention - name field se escapuje v adminu', async ({ page }) => {
 
   // Ověř, že v adminu se XSS payload nespustil (měl by být escapován)
   await page.goto('/admin.html');
+  await page.click('[data-view="table"]');
   await page.fill('#searchInput', 'xss+' + stamp + '@barx.cz');
   const row = page.locator('#reservationRows tr').filter({ hasText: 'xss+' + stamp + '@barx.cz' }).first();
   await expect(row).toBeVisible();

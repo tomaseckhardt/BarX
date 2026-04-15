@@ -160,7 +160,34 @@
     return true;
   }
 
+  function isLocalEnvironment() {
+    var h = window.location.hostname;
+    return h === 'localhost' || h === '127.0.0.1' || h === '';
+  }
+
+  async function localRequest(url, options) {
+    var opts = options || {};
+    var fetchOptions = {
+      method: opts.method || 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    };
+    if (opts.body !== undefined) {
+      fetchOptions.body = typeof opts.body === 'string' ? opts.body : JSON.stringify(opts.body);
+    }
+    var response = await fetch(url, fetchOptions);
+    var payload = await response.json();
+    if (!response.ok) {
+      throw new Error(errorMessageFromPayload(payload, 'Server error (' + response.status + ').'));
+    }
+    return payload;
+  }
+
   async function apiRequest(url, options) {
+    // Na localhostu použij lokální Node.js server místo Supabase
+    if (isLocalEnvironment()) {
+      return localRequest(url, options);
+    }
+
     var opts = options || {};
     var method = String(opts.method || 'GET').toUpperCase();
     var route = parseReservationPath(url);

@@ -36,6 +36,7 @@ test('admin quick actions meni stav rezervace', async ({ page }) => {
   await expect(page.locator('#reservationStatus')).toContainText('Rezervace byla uložená');
 
   await page.goto('/admin.html');
+  await page.click('[data-view="table"]');
   await page.fill('#searchInput', guestName);
 
   const row = () => page.locator('#reservationRows tr').filter({ hasText: guestName }).first();

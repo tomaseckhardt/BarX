@@ -5,8 +5,7 @@ const {
   goToStep2,
   fillContact,
   goToStep3,
-  pickFirstAvailableTable,
-  dismissBlockingOverlays
+  pickFirstAvailableTable
 } = require('./helpers/reservation-flow');
 
 // Edge cases a business logic testy
@@ -152,7 +151,7 @@ test('date picker - neumožní zvolit dnešní den', async ({ page }) => {
   expect(min).toBe(tomorrowIso);
 });
 
-test('saved reservations - lze znovu použít rezervaci', async ({ page }) => {
+test('po uložení se formulář vrátí do výchozího stavu', async ({ page }) => {
   test.setTimeout(90_000);
 
   const stamp = Date.now();
@@ -180,15 +179,11 @@ test('saved reservations - lze znovu použít rezervaci', async ({ page }) => {
 
   await page.getByRole('button', { name: 'Potvrdit rezervaci' }).click();
   await expect(page.locator('#reservationStatus')).toContainText('Rezervace byla uložená');
-  await dismissBlockingOverlays(page);
 
-  // Klikni na "Použít znovu" v sidebar
-  const targetSavedItem = page.locator('.saved-item').filter({ hasText: 'Saved Test ' + stamp }).first();
-  const reuseBtn = targetSavedItem.locator('[data-action="reuse"]');
-  await expect(reuseBtn).toBeVisible();
-  await reuseBtn.click();
-  
-  // Ověř, že se formulář naplnilo
-  await expect(page.locator('#guestName')).toHaveValue('Saved Test ' + stamp);
-  await expect(page.locator('#guestCount')).toHaveValue('3');
+  // Ověř, že po odeslání je formulář resetovaný
+  await expect(page.locator('#guestName')).toHaveValue('');
+  await expect(page.locator('#guestCount')).toHaveValue('4');
+  await expect(page.locator('#reservationDrink')).toHaveValue('MonstRum');
+  await expect(page.locator('#plannedVibe')).toHaveValue('5');
+  await expect(page.locator('#summaryTime')).toContainText('Vyber čas');
 });

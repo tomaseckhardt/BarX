@@ -49,6 +49,7 @@ test('admin search - je case-insensitive', async ({ page, request }) => {
 
   // Jdi na admin
   await page.goto('/admin.html');
+  await page.click('[data-view="table"]');
   await expect(page.locator('#reservationRows')).toBeVisible();
 
   // Hledej malými písmeny
@@ -64,11 +65,12 @@ test('admin filter - filtruje podle stavu', async ({ page, request }) => {
   test.setTimeout(90_000);
 
   const stamp = Date.now();
+  const filterName = 'Filter Test ' + stamp;
   const reservationIso = futureIsoByOffset((stamp % 120) + 8);
 
   // Vytvoř rezervaci
   const response = await createReservationWithRetry(request, {
-    name: 'Filter Test ' + stamp,
+    name: filterName,
     phone: '+420 777 ' + String(stamp).slice(-6),
     email: 'filter+' + stamp + '@barx.cz',
     guests: 2,
@@ -84,15 +86,20 @@ test('admin filter - filtruje podle stavu', async ({ page, request }) => {
 
   // Jdi na admin
   await page.goto('/admin.html');
+  await page.click('[data-view="table"]');
   await expect(page.locator('#reservationRows')).toBeVisible();
+
+  // Filtruj "nova"
+  // Počkej na načtení konkrétní rezervace (zaručí, že data jsou v tabulce)
+  let row = page.locator('#reservationRows tr').filter({ hasText: filterName });
+  await expect(row.first()).toBeVisible({ timeout: 15_000 });
 
   // Filtruj "nova"
   await page.selectOption('#statusFilter', 'new');
   await expect(page.locator('#statusFilter')).toHaveValue('new');
 
-  // Měla by se zobrazit
-  let row = page.locator('#reservationRows tr').filter({ hasText: 'Filter Test' });
-  await expect(row).toBeVisible();
+  // Měla by se stále zobrazovat (status je "nova")
+  await expect(row.first()).toBeVisible();
 
   // Potvrď rezervaci
   await request.patch('/api/reservations/' + reservationId, {
@@ -101,11 +108,12 @@ test('admin filter - filtruje podle stavu', async ({ page, request }) => {
 
   // Filtruj znovu "nova" - neměla by se zobrazit
   await page.goto('/admin.html');
+  await page.click('[data-view="table"]');
   await expect(page.locator('#reservationRows')).toBeVisible();
   await page.selectOption('#statusFilter', 'new');
   await expect(page.locator('#statusFilter')).toHaveValue('new');
 
-  row = page.locator('#reservationRows tr').filter({ hasText: 'Filter Test' });
+  row = page.locator('#reservationRows tr').filter({ hasText: filterName });
   // Row by měl mít count 0 (pokud není cachován)
   expect(await row.count()).toBe(0);
 });
@@ -142,6 +150,7 @@ test('admin sort - řadí podle data vzestupně', async ({ page, request }) => {
 
   // Jdi na admin
   await page.goto('/admin.html');
+  await page.click('[data-view="table"]');
   await expect(page.locator('#reservationRows')).toBeVisible();
 
   // Nastav sort na "date-asc"
@@ -180,6 +189,7 @@ test('admin quick action - confirm změní status na potvrzena', async ({ page, 
 
   // Jdi na admin
   await page.goto('/admin.html');
+  await page.click('[data-view="table"]');
   await expect(page.locator('#reservationRows')).toBeVisible();
 
   // Hledej řádku
@@ -197,6 +207,7 @@ test('admin quick action - confirm změní status na potvrzena', async ({ page, 
 
   // Obnov a zkontroluj, že se změnil status
   await page.reload();
+  await page.click('[data-view="table"]');
   await expect(page.locator('#reservationRows')).toBeVisible();
   await page.fill('#searchInput', 'Confirm Test ' + stamp);
   const updatedRow = page.locator('#reservationRows tr').filter({ hasText: 'Confirm Test ' + stamp });
