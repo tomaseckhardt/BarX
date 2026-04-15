@@ -15,3 +15,9 @@ node_modules/
 .pnpm-store/
 .yarn/cache/
 .next/cache/
+
+# Local runtime data
+reservations.json
+
+# Playwright run artifacts
+tests/test-results/.last-run.json
