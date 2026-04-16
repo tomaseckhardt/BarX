@@ -2389,6 +2389,166 @@
       }
     }
 
+    @media (max-width: 430px) {
+      nav {
+        padding-top: max(.8rem, env(safe-area-inset-top));
+        padding-right: max(.85rem, env(safe-area-inset-right));
+        padding-left: max(.85rem, env(safe-area-inset-left));
+        padding-bottom: .8rem;
+      }
+      .nav-logo {
+        font-size: 1.65rem;
+        letter-spacing: .1em;
+      }
+
+      .hero {
+        min-height: 100dvh;
+        padding-top: calc(4.8rem + env(safe-area-inset-top));
+        padding-right: 1rem;
+        padding-bottom: 1.5rem;
+        padding-left: 1rem;
+      }
+      .hero h1 {
+        font-size: clamp(4.2rem, 24vw, 6.6rem);
+        letter-spacing: .045em;
+        margin-bottom: 1.1rem;
+      }
+      .hero-sub {
+        font-size: .98rem;
+        line-height: 1.5;
+        margin-bottom: 1.6rem;
+        max-width: 32ch;
+      }
+      .hero-eyebrow {
+        font-size: .68rem;
+        letter-spacing: .22em;
+      }
+      .orb-1,
+      .orb-2,
+      .orb-3,
+      .hero-ring {
+        display: none;
+      }
+
+      section {
+        padding: 4.5rem 1rem;
+      }
+      .section-title {
+        margin-bottom: 2.2rem;
+      }
+
+      .category-tabs {
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        overflow-x: auto;
+        padding-bottom: .35rem;
+      }
+      .category-tabs::-webkit-scrollbar {
+        display: none;
+      }
+      .tab-btn {
+        flex: 0 0 auto;
+        white-space: nowrap;
+      }
+
+      .field label[for="plannedVibe"] {
+        position: static !important;
+        order: -1;
+        top: auto;
+        left: auto;
+        margin-bottom: .4rem;
+        margin-left: .1rem;
+      }
+      .field:has(#plannedVibe) {
+        padding-top: .4rem;
+      }
+
+      .reservation-shell {
+        gap: 1rem;
+      }
+      .reservation-panel,
+      .reservation-aside {
+        border-radius: 20px;
+      }
+      .reservation-note {
+        min-width: 0;
+      }
+      .summary-card {
+        position: static;
+        max-height: none;
+        overflow: visible;
+      }
+      .summary-row span {
+        font-size: .66rem;
+      }
+      .summary-row strong {
+        font-size: .88rem;
+      }
+
+      .contact-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+      .contact-card {
+        padding: 1.25rem;
+      }
+      .contact-map iframe {
+        height: 200px;
+      }
+
+      .gallery-lightbox {
+        padding-top: max(.75rem, env(safe-area-inset-top));
+        padding-right: max(.75rem, env(safe-area-inset-right));
+        padding-bottom: max(.75rem, env(safe-area-inset-bottom));
+        padding-left: max(.75rem, env(safe-area-inset-left));
+      }
+
+      .toast-container {
+        top: calc(4.2rem + env(safe-area-inset-top));
+        right: max(.75rem, env(safe-area-inset-right));
+        left: max(.75rem, env(safe-area-inset-left));
+        width: auto;
+        max-width: none;
+      }
+
+      .gdpr-banner {
+        padding-top: .9rem;
+        padding-right: max(1rem, env(safe-area-inset-right));
+        padding-bottom: calc(.9rem + env(safe-area-inset-bottom));
+        padding-left: max(1rem, env(safe-area-inset-left));
+      }
+      .gdpr-actions {
+        width: 100%;
+        display: grid;
+        gap: .5rem;
+      }
+      .gdpr-actions .btn {
+        width: 100%;
+      }
+
+      .custom-popup {
+        padding-top: max(.75rem, env(safe-area-inset-top));
+        padding-right: max(.75rem, env(safe-area-inset-right));
+        padding-bottom: max(.75rem, env(safe-area-inset-bottom));
+        padding-left: max(.75rem, env(safe-area-inset-left));
+      }
+      .custom-popup-dialog {
+        border-radius: 18px;
+        padding: 1.4rem 1rem 1rem;
+      }
+      .events-list li {
+        font-size: .96rem;
+      }
+
+      .back-to-top {
+        width: 58px;
+        height: 58px;
+        font-size: 2rem;
+        left: max(.85rem, env(safe-area-inset-left));
+        bottom: calc(1rem + env(safe-area-inset-bottom));
+      }
+    }
+
     @media (max-width: 380px) {
       .vibe-row {
         grid-template-columns: 1fr;
