@@ -33,7 +33,7 @@ test('admin quick actions meni stav rezervace', async ({ page }) => {
 
   await page.fill('#reservationNote', 'E2E admin actions');
   await page.getByRole('button', { name: 'Potvrdit rezervaci' }).click();
-  await expect(page.locator('#reservationStatus')).toContainText('Rezervace byla uložená');
+  await expect(page.locator('#reservationStatus')).toContainText('Rezervace byla poslána do baru');
 
   await page.goto('/admin.html');
   await page.click('[data-view="table"]');

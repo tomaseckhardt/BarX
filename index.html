@@ -2135,8 +2135,8 @@
     }
 
     function getLoyaltyBadge(visits) {
-      if (visits >= 10) return { tier: 'GOLD', label: '🥇 Gold member', next: null, perk: 'Stálá sleva 15% na každou návštěvu' };
-      if (visits >= 5) return { tier: 'SILVER', label: '🥈 Silver member', next: 10 - visits, perk: 'Drink zdarma při každé 5. návštěvě' };
+      if (visits >= 15) return { tier: 'GOLD', label: '🥇 Gold member', next: null, perk: 'Stálá sleva 15% na každou návštěvu' };
+      if (visits >= 7) return { tier: 'SILVER', label: '🥈 Silver member', next: 10 - visits, perk: 'Drink zdarma při každé 5. návštěvě' };
       if (visits >= 3) return { tier: 'BRONZE', label: '🥉 Bronze member', next: 5 - visits, perk: 'Přednostní rezervace stolů' };
       return { tier: 'NEW', label: '👋 Nový host', next: 3 - visits, perk: null };
     }

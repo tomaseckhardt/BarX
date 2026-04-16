@@ -34,7 +34,7 @@ test('XSS prevention - name field se escapuje v adminu', async ({ page }) => {
   await pickFirstAvailableTable(page);
 
   await page.getByRole('button', { name: 'Potvrdit rezervaci' }).click();
-  await expect(page.locator('#reservationStatus')).toContainText('Rezervace byla uložená');
+  await expect(page.locator('#reservationStatus')).toContainText('Rezervace byla poslána do baru');
 
   // Ověř, že v adminu se XSS payload nespustil (měl by být escapován)
   await page.goto('/admin.html');

@@ -206,3 +206,13 @@ Background auto-complete running every 300s
 [HTTP] {"ts":"2026-03-30T12:03:40.244Z","requestId":"f97d526c-1e25-4619-ae47-830d54be1c66","method":"GET","path":"/","status":200,"durationMs":1,"ip":"::1","ua":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"}
 [HTTP] {"ts":"2026-03-30T12:03:40.329Z","requestId":"c03bb62b-bd82-4104-99f5-14409fe2e56f","method":"GET","path":"/styles.css","status":200,"durationMs":1,"ip":"::1","ua":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"}
 [HTTP] {"ts":"2026-03-30T12:03:40.529Z","requestId":"a15eaeee-aa7d-42a3-aec1-3b902a3a12e9","method":"GET","path":"/api/reservations","status":200,"durationMs":1,"ip":"::1","ua":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0"}
+[2026-04-16T16:14:25.227Z] HTTP Request Handler [6699398f-a21b-4810-9124-6b865fde616f]
+Error: Payload too large
+Stack: Error: Payload too large
+    at IncomingMessage.<anonymous> (/home/tester/Vibecoding/Bar X/server.js:264:16)
+    at IncomingMessage.emit (node:events:508:28)
+    at addChunk (node:internal/streams/readable:559:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+    at Readable.push (node:internal/streams/readable:390:5)
+    at HTTPParser.parserOnBody (node:_http_common:135:24)
+---

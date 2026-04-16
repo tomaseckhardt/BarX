@@ -178,7 +178,7 @@ test('po uložení se formulář vrátí do výchozího stavu', async ({ page })
   });
 
   await page.getByRole('button', { name: 'Potvrdit rezervaci' }).click();
-  await expect(page.locator('#reservationStatus')).toContainText('Rezervace byla uložená');
+  await expect(page.locator('#reservationStatus')).toContainText('Rezervace byla poslána do baru');
 
   // Ověř, že po odeslání je formulář resetovaný
   await expect(page.locator('#guestName')).toHaveValue('');

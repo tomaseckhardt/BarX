@@ -39,7 +39,7 @@ test('kompletni booking flow se zobrazenim v adminu', async ({ page }) => {
   await page.fill('#reservationNote', 'E2E test rezervace');
   await page.getByRole('button', { name: 'Potvrdit rezervaci' }).click();
 
-  await expect(page.locator('#reservationStatus')).toContainText('Rezervace byla uložená');
+  await expect(page.locator('#reservationStatus')).toContainText('Rezervace byla poslána do baru + přidal jsem poznámku o 10% slevě (vibe 9+).');
 
   await page.goto('/admin.html');
   await page.click('[data-view="table"]');
