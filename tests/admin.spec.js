@@ -1,10 +1,17 @@
 const { test, expect } = require('@playwright/test');
 
 // Admin interface testy
+function toLocalIso(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return year + '-' + month + '-' + day;
+}
+
 function futureIsoByOffset(offsetDays) {
   const date = new Date();
   date.setDate(date.getDate() + offsetDays);
-  return date.toISOString().split('T')[0];
+  return toLocalIso(date);
 }
 
 async function createReservationWithRetry(request, payload, baseOffsetDays) {
@@ -102,9 +109,10 @@ test('admin filter - filtruje podle stavu', async ({ page, request }) => {
   await expect(row.first()).toBeVisible();
 
   // Potvrď rezervaci
-  await request.patch('/api/reservations/' + reservationId, {
+  const patchResponse = await request.patch('/api/reservations/' + reservationId, {
     data: { status: 'confirmed' }
   });
+  expect(patchResponse.ok()).toBeTruthy();
 
   // Filtruj znovu "nova" - neměla by se zobrazit
   await page.goto('/admin.html');
@@ -114,8 +122,7 @@ test('admin filter - filtruje podle stavu', async ({ page, request }) => {
   await expect(page.locator('#statusFilter')).toHaveValue('new');
 
   row = page.locator('#reservationRows tr').filter({ hasText: filterName });
-  // Row by měl mít count 0 (pokud není cachován)
-  expect(await row.count()).toBe(0);
+  await expect(row).toHaveCount(0);
 });
 
 test('admin sort - řadí podle data vzestupně', async ({ page, request }) => {
@@ -165,7 +172,7 @@ test('admin sort - řadí podle data vzestupně', async ({ page, request }) => {
   // B mělo by přijít dřív (má dřívější datum)
   expect(aIndex).toBeGreaterThan(-1);
   expect(bIndex).toBeGreaterThan(-1);
-  expect(aIndex).not.toBe(bIndex);
+  expect(aIndex).toBeLessThan(bIndex);
 });
 
 test('admin quick action - confirm změní status na potvrzena', async ({ page, request }) => {
@@ -214,8 +221,21 @@ test('admin quick action - confirm změní status na potvrzena', async ({ page, 
   await expect(updatedRow).toContainText('potvrzena');
 });
 
-test('admin cards view - zobrazuje rezervace jako karty', async ({ page }) => {
+test('admin cards view - zobrazuje rezervace jako karty', async ({ page, request }) => {
   test.setTimeout(60_000);
+
+  const stamp = Date.now();
+  const response = await createReservationWithRetry(request, {
+    name: 'Cards Test ' + stamp,
+    phone: '+420 777 ' + String(stamp).slice(-6),
+    email: 'cards+' + stamp + '@barx.cz',
+    guests: 2,
+    date: futureIsoByOffset((stamp % 120) + 9),
+    slot: '19:00',
+    tableId: 'bar-2',
+    vibe: 5
+  }, (stamp % 120) + 9);
+  expect(response.ok()).toBeTruthy();
 
   await page.goto('/admin.html');
 
@@ -226,4 +246,9 @@ test('admin cards view - zobrazuje rezervace jako karty', async ({ page }) => {
   // Ověř, že se zobrazí karty
   const cardsView = page.locator('#cardsView');
   await expect(cardsView).toHaveClass(/is-active/);
+
+  // Zúž výsledky na konkrétní nově vytvořenou rezervaci a ověř obsah karty
+  await page.fill('#searchInput', 'Cards Test ' + stamp);
+  const card = page.locator('.reservation-card').filter({ hasText: 'Cards Test ' + stamp }).first();
+  await expect(card).toBeVisible();
 });

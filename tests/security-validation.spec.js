@@ -9,6 +9,12 @@ const {
 } = require('./helpers/reservation-flow');
 
 // Test XSS prevention a input validation
+function toLocalIso(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return year + '-' + month + '-' + day;
+}
 
 test('XSS prevention - name field se escapuje v adminu', async ({ page }) => {
   test.setTimeout(90_000);
@@ -20,7 +26,7 @@ test('XSS prevention - name field se escapuje v adminu', async ({ page }) => {
   
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowIso = tomorrow.toISOString().split('T')[0];
+  const tomorrowIso = toLocalIso(tomorrow);
 
   await pickDateAndSlot(page, tomorrowIso);
   await goToStep2(page);
@@ -52,7 +58,7 @@ test('validace telefonu - chybný formát se odmítne', async ({ page }) => {
 
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowIso = tomorrow.toISOString().split('T')[0];
+  const tomorrowIso = toLocalIso(tomorrow);
   await pickDateAndSlot(page, tomorrowIso);
   await goToStep2(page);
 
@@ -73,7 +79,7 @@ test('validace emailu - prázdný se odmítne', async ({ page }) => {
 
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowIso = tomorrow.toISOString().split('T')[0];
+  const tomorrowIso = toLocalIso(tomorrow);
   await pickDateAndSlot(page, tomorrowIso);
   await goToStep2(page);
 
@@ -101,14 +107,14 @@ test('host count - nula hostů se odmítne', async ({ page }) => {
   expect(options).not.toContain('0');
 });
 
-test('API - concurrent booking same table chybí detekci', async ({ request }) => {
-  // Tento test ukazuje, že server neochraňuje proti race conditions
+test('API - concurrent booking same table vrati konflikt pro jednu rezervaci', async ({ request }) => {
+  // Tento test ověřuje, že server ochrání před dvojitou rezervací stejného stolu/slotu.
   test.setTimeout(60_000);
 
   const stamp = Date.now();
   const tomorrowIso = new Date();
   tomorrowIso.setDate(tomorrowIso.getDate() + 1);
-  const dateStr = tomorrowIso.toISOString().split('T')[0];
+  const dateStr = toLocalIso(tomorrowIso);
 
   const payload1 = {
     name: 'Concurrent ' + stamp,

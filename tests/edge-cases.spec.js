@@ -9,6 +9,12 @@ const {
 } = require('./helpers/reservation-flow');
 
 // Edge cases a business logic testy
+function toLocalIso(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return year + '-' + month + '-' + day;
+}
 
 test('happy hour - pondělí 17:00-18:59 má značku', async ({ page }) => {
   test.setTimeout(60_000);
@@ -19,7 +25,7 @@ test('happy hour - pondělí 17:00-18:59 má značku', async ({ page }) => {
   const monday = new Date();
   const daysUntilMonday = (1 - monday.getDay() + 7) % 7 || 7;
   monday.setDate(monday.getDate() + daysUntilMonday);
-  const mondayIso = monday.toISOString().split('T')[0];
+  const mondayIso = toLocalIso(monday);
 
   await page.fill('#reservationDate', mondayIso);
   await page.dispatchEvent('#reservationDate', 'change');
@@ -39,7 +45,7 @@ test('happy hour - neděle NEMÁ happy hour', async ({ page }) => {
   const sunday = new Date();
   const daysUntilSunday = (0 - sunday.getDay() + 7) % 7 || 7;
   sunday.setDate(sunday.getDate() + daysUntilSunday);
-  const sundayIso = sunday.toISOString().split('T')[0];
+  const sundayIso = toLocalIso(sunday);
 
   await page.fill('#reservationDate', sundayIso);
   await page.dispatchEvent('#reservationDate', 'change');
@@ -58,7 +64,7 @@ test('vibe system - vibe 9+ aktivuje 10% slevu', async ({ page }) => {
 
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowIso = tomorrow.toISOString().split('T')[0];
+  const tomorrowIso = toLocalIso(tomorrow);
 
   await pickDateAndSlot(page, tomorrowIso);
   await goToStep2(page);
@@ -86,7 +92,7 @@ test('vibe system - vibe 11 = 100% sleva (legendary)', async ({ page }) => {
 
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowIso = tomorrow.toISOString().split('T')[0];
+  const tomorrowIso = toLocalIso(tomorrow);
 
   await pickDateAndSlot(page, tomorrowIso);
   await goToStep2(page);
@@ -116,7 +122,7 @@ test('table validation - nelze vybrat stůl s málo místy', async ({ page }) =>
 
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowIso = tomorrow.toISOString().split('T')[0];
+  const tomorrowIso = toLocalIso(tomorrow);
 
   // Nastav 6 hostů
   await pickDateAndSlot(page, tomorrowIso);
@@ -146,7 +152,7 @@ test('date picker - neumožní zvolit dnešní den', async ({ page }) => {
   const min = await inputElement.getAttribute('min');
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowIso = tomorrow.toISOString().split('T')[0];
+  const tomorrowIso = toLocalIso(tomorrow);
   
   expect(min).toBe(tomorrowIso);
 });
@@ -157,7 +163,7 @@ test('po uložení se formulář vrátí do výchozího stavu', async ({ page })
   const stamp = Date.now();
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowIso = tomorrow.toISOString().split('T')[0];
+  const tomorrowIso = toLocalIso(tomorrow);
 
   // Vytvoř rezervaci
   await openReservation(page);

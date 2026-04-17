@@ -8,6 +8,13 @@ const {
   pickFirstAvailableTable
 } = require('./helpers/reservation-flow');
 
+function toLocalIso(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return year + '-' + month + '-' + day;
+}
+
 test('kompletni booking flow se zobrazenim v adminu', async ({ page }) => {
   test.setTimeout(90_000);
 
@@ -20,7 +27,7 @@ test('kompletni booking flow se zobrazenim v adminu', async ({ page }) => {
 
   const date = new Date();
   date.setDate(date.getDate() + ((stamp % 120) + 14));
-  const tomorrowIso = date.toISOString().split('T')[0];
+  const tomorrowIso = toLocalIso(date);
 
   await pickDateAndSlot(page, tomorrowIso);
   await goToStep2(page);

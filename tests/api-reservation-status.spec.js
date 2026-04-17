@@ -1,12 +1,19 @@
 const { test, expect } = require('@playwright/test');
 
+function toLocalIso(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return year + '-' + month + '-' + day;
+}
+
 test('API PATCH meni status rezervace', async ({ request }) => {
   test.setTimeout(60_000);
 
   const stamp = Date.now();
   const future = new Date();
   future.setDate(future.getDate() + ((stamp % 120) + 9));
-  const tomorrowIso = future.toISOString().split('T')[0];
+  const tomorrowIso = toLocalIso(future);
 
   const createResponse = await request.post('/api/reservations', {
     data: {
