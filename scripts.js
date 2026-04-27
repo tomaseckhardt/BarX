@@ -1,182 +1,135 @@
-// Skript pro rozbalení dalších drinků
+// Hlavní klientský skript — popupy, FAQ a animace menu
 
-document.addEventListener('DOMContentLoaded', function () {
-    // --- POPUPY: Speciální akce & FAQ ---
-    const specialEventsCard = document.getElementById('specialEventsCard');
-    const eventsPopup = document.getElementById('eventsPopup');
-    const closeEventsPopup = document.getElementById('closeEventsPopup');
-    if (specialEventsCard && eventsPopup && closeEventsPopup) {
-      specialEventsCard.onclick = function() {
-        eventsPopup.hidden = false;
-        eventsPopup.setAttribute('aria-hidden', 'false');
-        document.body.classList.add('modal-open');
-      };
-      closeEventsPopup.onclick = function() {
-        eventsPopup.hidden = true;
-        eventsPopup.setAttribute('aria-hidden', 'true');
-        document.body.classList.remove('modal-open');
-      };
-      eventsPopup.querySelector('.custom-popup-backdrop').onclick = closeEventsPopup.onclick;
-    }
+// Nastaví aria atributy a třídu body při otevírání/zavírání modalu.
+function setModalState(modal, isOpen) {
+  modal.hidden = !isOpen;
+  modal.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+  document.body.classList.toggle('modal-open', isOpen);
+}
 
-    const faqCard = document.getElementById('faqCard');
-    const faqPopup = document.getElementById('faqPopup');
-    const closeFaqPopup = document.getElementById('closeFaqPopup');
-    if (faqCard && faqPopup && closeFaqPopup) {
-      faqCard.onclick = function() {
-        faqPopup.hidden = false;
-        faqPopup.setAttribute('aria-hidden', 'false');
-        document.body.classList.add('modal-open');
-      };
-      closeFaqPopup.onclick = function() {
-        faqPopup.hidden = true;
-        faqPopup.setAttribute('aria-hidden', 'true');
-        document.body.classList.remove('modal-open');
-      };
-      faqPopup.querySelector('.custom-popup-backdrop').onclick = closeFaqPopup.onclick;
-    }
+function setupModal(triggerId, modalId, closeButtonId) {
+  const trigger = document.getElementById(triggerId);
+  const modal = document.getElementById(modalId);
+  const closeButton = document.getElementById(closeButtonId);
+  const backdrop = modal ? modal.querySelector('.custom-popup-backdrop') : null;
 
-    // FAQ rozbalování odpovědí
-    function setupFaqToggle() {
-      document.querySelectorAll('.faq-question').forEach(function(btn) {
-        btn.onclick = function() {
-          const item = btn.closest('.faq-item');
-          item.classList.toggle('active');
-        };
-      });
-    }
-    if (document.querySelectorAll('.faq-question').length) {
-      setupFaqToggle();
-    }
-  const showMoreBtn = document.getElementById('showMoreDrinks');
-  const menuGrid = document.getElementById('menuGrid');
-
-  // Vytvořte HTML pro dalších 9 drinků (ukázka, uprav dle potřeby)
-  const moreDrinksHTML = `
-    <div class="drink-card theme-gold animated-drink" data-category="signature">
-      <span class="drink-badge">Signature</span>
-      <div class="drink-name">Aurora Bliss</div>
-      <div class="drink-sub">Gin · Yuzu · Levandule</div>
-      <p class="drink-desc">Jemný gin s exotickým yuzu a květy levandule. Svěží, květinový zážitek.</p>
-      <div class="drink-footer"><span class="drink-price">159 Kč</span><div class="drink-abv"><div class="abv-dots"><div class="abv-dot filled"></div><div class="abv-dot filled"></div><div class="abv-dot filled"></div><div class="abv-dot"></div><div class="abv-dot"></div></div>Síla</div></div>
-    </div>
-    <div class="drink-card theme-purple animated-drink" data-category="long">
-      <span class="drink-badge">Long Drink</span>
-      <div class="drink-name">Berry Fizz</div>
-      <div class="drink-sub">Vodka · Lesní ovoce · Soda</div>
-      <p class="drink-desc">Ovocný long drink s jemnou perlivostí a svěží chutí lesního ovoce.</p>
-      <div class="drink-footer"><span class="drink-price">135 Kč</span><div class="drink-abv"><div class="abv-dots"><div class="abv-dot filled"></div><div class="abv-dot filled"></div><div class="abv-dot"></div><div class="abv-dot"></div><div class="abv-dot"></div></div>Síla</div></div>
-    </div>
-    <div class="drink-card theme-red animated-drink" data-category="shot">
-      <span class="drink-badge">Shot</span>
-      <div class="drink-name">Firestarter</div>
-      <div class="drink-sub">Tequila · Chilli · Limetka</div>
-      <p class="drink-desc">Pikantní shot s tequilou, chilli a limetkou. Pro odvážné!</p>
-      <div class="drink-footer"><span class="drink-price">75 Kč</span><div class="drink-abv"><div class="abv-dots"><div class="abv-dot filled"></div><div class="abv-dot filled"></div><div class="abv-dot filled"></div><div class="abv-dot"></div><div class="abv-dot"></div></div>Síla</div></div>
-    </div>
-    <div class="drink-card theme-pink animated-drink" data-category="bezalkohol">
-      <span class="drink-badge">Bez alkoholu</span>
-      <div class="drink-name">Pink Dream</div>
-      <div class="drink-sub">Jahoda · Vanilka · Soda</div>
-      <p class="drink-desc">Sladký a osvěžující nealko drink s jahodou a vanilkou.</p>
-      <div class="drink-footer"><span class="drink-price">89 Kč</span><div class="drink-abv"><div class="abv-dots"><div class="abv-dot"></div><div class="abv-dot"></div><div class="abv-dot"></div><div class="abv-dot"></div><div class="abv-dot"></div></div>0% ABV</div></div>
-    </div>
-    <div class="drink-card theme-gold animated-drink" data-category="signature">
-      <span class="drink-badge">Signature</span>
-      <div class="drink-name">Tropical Beam</div>
-      <div class="drink-sub">Rum · Mango · Limetka</div>
-      <p class="drink-desc">Exotický rumový koktejl s mangem a limetkou. Slunce ve sklenici.</p>
-      <div class="drink-footer"><span class="drink-price">149 Kč</span><div class="drink-abv"><div class="abv-dots"><div class="abv-dot filled"></div><div class="abv-dot filled"></div><div class="abv-dot filled"></div><div class="abv-dot"></div><div class="abv-dot"></div></div>Síla</div></div>
-    </div>
-    <div class="drink-card theme-teal animated-drink" data-category="long">
-      <span class="drink-badge">Long Drink</span>
-      <div class="drink-name">Minty Lake</div>
-      <div class="drink-sub">Gin · Máta · Okurka</div>
-      <p class="drink-desc">Lehký a osvěžující drink s mátou a okurkou. Ideální na léto.</p>
-      <div class="drink-footer"><span class="drink-price">139 Kč</span><div class="drink-abv"><div class="abv-dots"><div class="abv-dot filled"></div><div class="abv-dot filled"></div><div class="abv-dot"></div><div class="abv-dot"></div><div class="abv-dot"></div></div>Síla</div></div>
-    </div>
-    <div class="drink-card theme-red animated-drink" data-category="shot">
-      <span class="drink-badge">Shot</span>
-      <div class="drink-name">Red Rocket</div>
-      <div class="drink-sub">Vodka · Brusinka · Limetka</div>
-      <p class="drink-desc">Ostrý shot s vodkou, brusinkou a limetkou. Rychlý start večera!</p>
-      <div class="drink-footer"><span class="drink-price">79 Kč</span><div class="drink-abv"><div class="abv-dots"><div class="abv-dot filled"></div><div class="abv-dot filled"></div><div class="abv-dot"></div><div class="abv-dot"></div><div class="abv-dot"></div></div>Síla</div></div>
-    </div>
-    <div class="drink-card theme-pink animated-drink" data-category="bezalkohol">
-      <span class="drink-badge">Bez alkoholu</span>
-      <div class="drink-name">Coco Kiss</div>
-      <div class="drink-sub">Kokos · Ananas · Soda</div>
-      <p class="drink-desc">Tropický nealko drink s kokosem a ananasem. Sladký a jemný.</p>
-      <div class="drink-footer"><span class="drink-price">85 Kč</span><div class="drink-abv"><div class="abv-dots"><div class="abv-dot"></div><div class="abv-dot"></div><div class="abv-dot"></div><div class="abv-dot"></div><div class="abv-dot"></div></div>0% ABV</div></div>
-    </div>
-    <div class="drink-card theme-gold animated-drink" data-category="signature">
-      <span class="drink-badge">Signature</span>
-      <div class="drink-name">Sunset Boulevard</div>
-      <div class="drink-sub">Whiskey · Pomeranč · Med</div>
-      <p class="drink-desc">Hřejivý whiskey koktejl s pomerančem a medem. Západ slunce v baru.</p>
-      <div class="drink-footer"><span class="drink-price">159 Kč</span><div class="drink-abv"><div class="abv-dots"><div class="abv-dot filled"></div><div class="abv-dot filled"></div><div class="abv-dot filled"></div><div class="abv-dot"></div><div class="abv-dot"></div></div>Síla</div></div>
-    </div>
-  `;
-
-  let shown = false;
-  let collapseBtn = null;
-
-  function getRandomEdgeTransform() {
-    // Náhodný směr: left, right, top, bottom, nebo diagonály
-    const edges = [
-      {x: '-120vw', y: '0'},    // zleva
-      {x: '120vw', y: '0'},     // zprava
-      {x: '0', y: '-80vh'},     // shora
-      {x: '0', y: '80vh'},      // zdola
-      {x: '-100vw', y: '-60vh'},// zleva shora
-      {x: '100vw', y: '-60vh'}, // zprava shora
-      {x: '-100vw', y: '60vh'}, // zleva zdola
-      {x: '100vw', y: '60vh'}   // zprava zdola
-    ];
-    const pick = edges[Math.floor(Math.random() * edges.length)];
-    // Přestřelení (overshoot) směrem ke středu - menší
-    const overshootX = (parseInt(pick.x) || 0) * -0.06 + 'vw';
-    const overshootY = (parseInt(pick.y) || 0) * -0.06 + 'vh';
-    return {
-      start: `translate(${pick.x}, ${pick.y}) scale(0.92)`,
-      overshootX,
-      overshootY
-    };
+  if (!trigger || !modal || !closeButton || !backdrop) {
+    return;
   }
 
-  showMoreBtn.addEventListener('click', function () {
-    if (!shown) {
-      menuGrid.insertAdjacentHTML('beforeend', moreDrinksHTML);
-      // Animace: každé dlaždici nastavíme náhodný start
-      const newDrinks = menuGrid.querySelectorAll('.animated-drink');
-      newDrinks.forEach((el, i) => {
-        const {start, overshootX, overshootY} = getRandomEdgeTransform();
-        el.style.opacity = '0';
-        el.style.transform = start;
-        el.style.setProperty('--overshoot-x', overshootX);
-        el.style.setProperty('--overshoot-y', overshootY);
-        setTimeout(() => {
-          el.style.opacity = '';
-          el.style.transform = '';
-          el.classList.add('start-anim');
-        }, i * 1000);
-      });
-      // Přidání tlačítka Zabalit
-      collapseBtn = document.createElement('button');
-      collapseBtn.textContent = 'Zabalit';
-      collapseBtn.className = 'btn btn-secondary';
-      collapseBtn.style.margin = '2.2rem auto 0 auto';
-      collapseBtn.style.display = 'block';
-      collapseBtn.style.maxWidth = '320px';
-      collapseBtn.onclick = function () {
-        newDrinks.forEach(drink => drink.remove());
-        collapseBtn.remove();
-        showMoreBtn.style.display = '';
-        shown = false;
-      };
-      menuGrid.parentNode.appendChild(collapseBtn);
-      showMoreBtn.style.display = 'none';
-      shown = true;
-    }
+  const openModal = function () {
+    setModalState(modal, true);
+  };
+
+  const closeModal = function () {
+    setModalState(modal, false);
+  };
+
+  trigger.onclick = openModal;
+  closeButton.onclick = closeModal;
+  backdrop.onclick = closeModal;
+}
+
+function setupFaqToggle() {
+  document.querySelectorAll('.faq-question').forEach(function (button) {
+    button.onclick = function () {
+      const item = button.closest('.faq-item');
+      if (item) {
+        item.classList.toggle('active');
+      }
+    };
   });
+}
+
+// Vybere náhodný směr vstupu pro animaci (ze 8 hran obrazovky)
+// a spočítá mírný overshoot pro pružniný efekt.
+function getRandomEdgeTransform() {
+  const edges = [
+    { x: '-120vw', y: '0' },
+    { x: '120vw', y: '0' },
+    { x: '0', y: '-80vh' },
+    { x: '0', y: '80vh' },
+    { x: '-100vw', y: '-60vh' },
+    { x: '100vw', y: '-60vh' },
+    { x: '-100vw', y: '60vh' },
+    { x: '100vw', y: '60vh' }
+  ];
+  const pick = edges[Math.floor(Math.random() * edges.length)];
+  const overshootX = (parseInt(pick.x, 10) || 0) * -0.06 + 'vw';
+  const overshootY = (parseInt(pick.y, 10) || 0) * -0.06 + 'vh';
+
+  return {
+    start: `translate(${pick.x}, ${pick.y}) scale(0.92)`,
+    overshootX,
+    overshootY
+  };
+}
+
+// Animuje kartu drinku — každá karta vstoupí s offsetem (index * 1000ms)
+// aby nepřícházely všechny najednou.
+function animateExtraDrink(card, index) {
+  const transform = getRandomEdgeTransform();
+  card.style.opacity = '0';
+  card.style.transform = transform.start;
+  card.style.setProperty('--overshoot-x', transform.overshootX);
+  card.style.setProperty('--overshoot-y', transform.overshootY);
+
+  setTimeout(function () {
+    card.style.opacity = '';
+    card.style.transform = '';
+    card.classList.add('start-anim');
+  }, index * 1000);
+}
+
+function createCollapseButton(extraDrinks, showMoreButton) {
+  const collapseButton = document.createElement('button');
+  collapseButton.textContent = 'Zabalit';
+  collapseButton.className = 'btn btn-secondary';
+  collapseButton.style.margin = '2.2rem auto 0 auto';
+  collapseButton.style.display = 'block';
+  collapseButton.style.maxWidth = '320px';
+  collapseButton.onclick = function () {
+    extraDrinks.forEach(function (drink) {
+      drink.setAttribute('hidden', '');
+    });
+    collapseButton.remove();
+    showMoreButton.style.display = '';
+  };
+  return collapseButton;
+}
+
+function setupExpandedMenu() {
+  const showMoreButton = document.getElementById('showMoreDrinks');
+  const menuGrid = document.getElementById('menuGrid');
+
+  if (!showMoreButton || !menuGrid) {
+    return;
+  }
+
+  showMoreButton.addEventListener('click', function () {
+    const extraDrinks = Array.from(menuGrid.querySelectorAll('.extra-drink'));
+    if (extraDrinks.length === 0 || showMoreButton.style.display === 'none') {
+      return;
+    }
+
+    extraDrinks.forEach(function (card) {
+      card.removeAttribute('hidden');
+    });
+    extraDrinks.forEach(animateExtraDrink);
+
+    const collapseButton = createCollapseButton(extraDrinks, showMoreButton);
+    menuGrid.parentNode.appendChild(collapseButton);
+    showMoreButton.style.display = 'none';
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  setupModal('specialEventsCard', 'eventsPopup', 'closeEventsPopup');
+  setupModal('faqCard', 'faqPopup', 'closeFaqPopup');
+
+  if (document.querySelector('.faq-question')) {
+    setupFaqToggle();
+  }
+
+  setupExpandedMenu();
 });

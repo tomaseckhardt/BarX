@@ -7,6 +7,7 @@ const {
   goToStep3,
   pickFirstAvailableTable
 } = require('./helpers/reservation-flow');
+const { getTestUser } = require('./helpers/random-user');
 
 function toLocalIso(date) {
   const year = date.getFullYear();
@@ -15,13 +16,14 @@ function toLocalIso(date) {
   return year + '-' + month + '-' + day;
 }
 
-test('kompletni booking flow se zobrazenim v adminu', async ({ page }) => {
+test('kompletni booking flow se zobrazenim v adminu', async ({ page, request }) => {
   test.setTimeout(90_000);
 
   const stamp = Date.now();
-  const guestName = 'E2E Full ' + stamp;
-  const guestPhone = '+420 777 ' + String(stamp).slice(-6);
-  const guestEmail = 'e2e+' + stamp + '@barx.cz';
+  const user = await getTestUser(request, { tag: 'E2E Full', stamp });
+  const guestName = user.name;
+  const guestPhone = user.phone;
+  const guestEmail = user.email;
 
   await openReservation(page);
 

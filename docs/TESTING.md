@@ -4,10 +4,10 @@
 
 ```bash
 npm run test:e2e                    # Všechny testy
-npx playwright test --config=tests/playwright.config.js tests/basic-functionality.spec.js  # Konkrétní soubor
+npx playwright test --config=testy/playwright.config.js testy/basic-functionality.spec.js  # Konkrétní soubor
 ```
 
-Server se spouští automaticky (config `webServer` v `tests/playwright.config.js`).
+Server se spouští automaticky (config `webServer` v `testy/playwright.config.js`).
 
 ## Konfigurace
 
@@ -18,7 +18,7 @@ Server se spouští automaticky (config `webServer` v `tests/playwright.config.j
 | Timeout akce | 30 s |
 | Timeout expect | 10 s |
 | Timeout testu | 60–90 s (nastaveno per-test) |
-| Výstup | `tests/test-results/` |
+| Výstup | `testy/test-results/` |
 
 ## Přehled testů
 

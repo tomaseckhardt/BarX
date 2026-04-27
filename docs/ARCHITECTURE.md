@@ -4,9 +4,9 @@
 
 ```
 ┌─────────────┐     HTTP      ┌─────────────┐     JSON fs     ┌──────────────────┐
-│  index.html │ ◄──────────► │  server.js  │ ◄────────────► │ reservations.json │
-│  admin.html │   fetch API   │  (Node.js)  │   read/write    │   (persistence)  │
-│  styles.css │               │             │                 │                    │
+│  index.html │ ◄──────────► │  backend/   │ ◄────────────► │ reservations.json │
+│  admin.html │   fetch API   │  server.js  │   read/write    │   (persistence)  │
+│  styles.css │               │  (Node.js)  │                 │                    │
 └─────────────┘               └─────────────┘                 └──────────────────┘
                                     │
                                     │ background job (5 min)
@@ -17,11 +17,11 @@
 
 ---
 
-## server.js — Backend
+## backend/ — Backend
 
 ### Základní flow requestu
 
-1. HTTP request dorazí do `http.createServer` handleru
+1. HTTP request dorazí do `http.createServer` handleru v `backend/server.js`
 2. Přiřadí se `X-Request-Id` (UUID) a startuje se měření latence
 3. Podle URL se routuje na `handleApi()` nebo `handleStatic()`
 4. Po dokončení se zaloguje structured JSON (`[HTTP]` prefix)

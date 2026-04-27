@@ -1,0 +1,5 @@
+{
+  "playwright.reuseBrowser": false,
+  "playwright.showTrace": false,
+  "playwright.configFile": "testy/playwright.config.js"
+}

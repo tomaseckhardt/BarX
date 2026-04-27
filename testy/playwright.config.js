@@ -18,8 +18,8 @@ module.exports = defineConfig({
     }
   ],
   webServer: {
-    command: 'npm start',
-    cwd: '..',
+    command: '/home/tester/.nvm/versions/node/v24.11.1/bin/node backend/server.js',
+    cwd: '/home/tester/Vibecoding/Bar X',
     url: 'http://localhost:3000',
     reuseExistingServer: true,
     timeout: 120_000

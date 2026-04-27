@@ -21,3 +21,4 @@ reservations.json
 
 # Playwright run artifacts
 tests/test-results/.last-run.json
+testy/test-results/

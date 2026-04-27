@@ -7,6 +7,7 @@ const {
   goToStep3,
   pickFirstAvailableTable
 } = require('./helpers/reservation-flow');
+const { getTestUser } = require('./helpers/random-user');
 
 function toLocalIso(date) {
   const year = date.getFullYear();
@@ -15,7 +16,7 @@ function toLocalIso(date) {
   return year + '-' + month + '-' + day;
 }
 
-test('zakladni funkcnost bez potvrzeni rezervace', async ({ page }) => {
+test('zakladni funkcnost bez potvrzeni rezervace', async ({ page, request }) => {
   test.setTimeout(90_000);
 
   await page.goto('/');
@@ -34,10 +35,11 @@ test('zakladni funkcnost bez potvrzeni rezervace', async ({ page }) => {
 
   await pickDateAndSlot(page, tomorrowIso);
   await goToStep2(page);
+  const user = await getTestUser(request, { tag: 'Basic Flow' });
   await fillContact(page, {
-    name: 'Basic Flow',
-    phone: '+420 777 123456',
-    email: 'basic-flow@example.cz'
+    name: user.name,
+    phone: user.phone,
+    email: user.email
   });
   await goToStep3(page);
 

@@ -7,6 +7,7 @@ const {
   goToStep3,
   pickFirstAvailableTable
 } = require('./helpers/reservation-flow');
+const { getTestUser } = require('./helpers/random-user');
 
 // Edge cases a business logic testy
 function toLocalIso(date) {
@@ -57,7 +58,7 @@ test('happy hour - neděle NEMÁ happy hour', async ({ page }) => {
   await expect(firstSlot).not.toContainText('Happy Hour');
 });
 
-test('vibe system - vibe 9+ aktivuje 10% slevu', async ({ page }) => {
+test('vibe system - vibe 9+ aktivuje 10% slevu', async ({ page, request }) => {
   test.setTimeout(60_000);
 
   await openReservation(page);
@@ -68,10 +69,11 @@ test('vibe system - vibe 9+ aktivuje 10% slevu', async ({ page }) => {
 
   await pickDateAndSlot(page, tomorrowIso);
   await goToStep2(page);
+  const user = await getTestUser(request, { tag: 'Vibe Test' });
   await fillContact(page, {
-    name: 'Vibe Test',
-    phone: '+420 777 555111',
-    email: 'vibe9@example.cz'
+    name: `${user.name} — Vibe 9+`,
+    phone: user.phone,
+    email: user.email
   });
   await goToStep3(page);
 
@@ -85,7 +87,7 @@ test('vibe system - vibe 9+ aktivuje 10% slevu', async ({ page }) => {
   await expect(page.locator('#vibeDiscountBadge')).toContainText('SPLNĚNO');
 });
 
-test('vibe system - vibe 11 = 100% sleva (legendary)', async ({ page }) => {
+test('vibe system - vibe 11 = 100% sleva (legendary)', async ({ page, request }) => {
   test.setTimeout(60_000);
 
   await openReservation(page);
@@ -96,10 +98,11 @@ test('vibe system - vibe 11 = 100% sleva (legendary)', async ({ page }) => {
 
   await pickDateAndSlot(page, tomorrowIso);
   await goToStep2(page);
+  const user = await getTestUser(request, { tag: 'Vibe Legendary' });
   await fillContact(page, {
-    name: 'Vibe Legendary',
-    phone: '+420 777 555112',
-    email: 'vibe11@example.cz'
+    name: `${user.name} — Vibe Legendary`,
+    phone: user.phone,
+    email: user.email
   });
   await goToStep3(page);
 
@@ -115,7 +118,7 @@ test('vibe system - vibe 11 = 100% sleva (legendary)', async ({ page }) => {
   await expect(page.locator('#summaryEstimateTotal')).toContainText('ZDARMA');
 });
 
-test('table validation - nelze vybrat stůl s málo místy', async ({ page }) => {
+test('table validation - nelze vybrat stůl s málo místy', async ({ page, request }) => {
   test.setTimeout(60_000);
 
   await openReservation(page);
@@ -127,10 +130,11 @@ test('table validation - nelze vybrat stůl s málo místy', async ({ page }) =>
   // Nastav 6 hostů
   await pickDateAndSlot(page, tomorrowIso);
   await goToStep2(page);
+  const user = await getTestUser(request, { tag: 'Table Validation' });
   await fillContact(page, {
-    name: 'Table Validation',
-    phone: '+420 777 555113',
-    email: 'table-valid@example.cz'
+    name: user.name,
+    phone: user.phone,
+    email: user.email
   });
   await goToStep3(page);
   await page.selectOption('#guestCount', '6');
@@ -157,7 +161,7 @@ test('date picker - neumožní zvolit dnešní den', async ({ page }) => {
   expect(min).toBe(tomorrowIso);
 });
 
-test('po uložení se formulář vrátí do výchozího stavu', async ({ page }) => {
+test('po uložení se formulář vrátí do výchozího stavu', async ({ page, request }) => {
   test.setTimeout(90_000);
 
   const stamp = Date.now();
@@ -169,10 +173,11 @@ test('po uložení se formulář vrátí do výchozího stavu', async ({ page })
   await openReservation(page);
   await pickDateAndSlot(page, tomorrowIso);
   await goToStep2(page);
+  const user = await getTestUser(request, { tag: 'Saved Test', stamp });
   await fillContact(page, {
-    name: 'Saved Test ' + stamp,
-    phone: '+420 777 ' + String(stamp).slice(-6),
-    email: 'saved+' + stamp + '@barx.cz'
+    name: user.name,
+    phone: user.phone,
+    email: user.email
   });
   await goToStep3(page);
   await page.selectOption('#guestCount', '3');

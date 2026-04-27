@@ -5,18 +5,18 @@
 2. V kořenové složce spusť:
    ```bash
    npm install
-   node server.js
+   npm start
    ```
-3. Otevři prohlížeč na adrese `http://localhost:3000` (nebo port dle nastavení).
+   Server startuje z `backend/server.js` na portu 3000.
+3. Otevři prohlížeč na adrese `http://localhost:3000`.
 
 ## Spuštění Playwright testů
-1. Přejdi do složky `tests/`:
+1. Z kořenové složky projektu:
    ```bash
-   cd tests
-   npm install
-   npx playwright test
+   npm run test:e2e
    ```
-2. Výsledky najdeš ve složce `test-results/`.
+   Server se spustí automaticky — není třeba ho startovat ručně.
+2. Výsledky najdeš ve složce `testy/test-results/`.
 
 ## Struktura projektu
 - Viz soubor `STRUCTURE.md` v `docs/`.

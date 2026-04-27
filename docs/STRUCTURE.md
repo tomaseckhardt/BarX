@@ -5,25 +5,34 @@ Tento soubor popisuje základní strukturu projektu a účel jednotlivých soubo
 ## Kořenové soubory
 - `index.html` — Hlavní stránka s menu drinků a veškerým UI.
 - `admin.html` — Administrátorské rozhraní pro správu rezervací a obsahu.
+- `admin.js` — Logika administrátorského dashboardu (JS pro admin.html).
+- `scripts.js` — Klientský JS pro hlavní stránku (formuláře, animace, menu).
 - `styles.css` — Hlavní stylopis pro celý web.
-- `server.js` — Node.js server pro backendovou logiku a API.
+- `supabase-config.js` — Konfigurace Supabase pro produkční prostředí.
 - `package.json` — Konfigurace Node.js projektu a závislostí.
-- `reservations.json` — Databáze rezervací (JSON formát).
+- `reservations.json` — Databáze rezervací (JSON formát, lokální vývoj).
 - `README.md` — Úvodní informace a základní popis projektu.
 
 ## Složky
+- `backend/` — Node.js server a veškerá backendová logika.
 - `docs/` — Dokumentace projektu (API, architektura, testování, struktura).
-- `tests/` — Playwright testy a konfigurace pro automatizované testování.
-- `test-results/` — Výstupy z testů (reporty, logy).
+- `testy/` — Playwright testy a konfigurace pro automatizované testování.
 
-## Důležité soubory v docs/
-- `API.md` — Popis API endpointů a jejich použití.
-- `ARCHITECTURE.md` — Architektura aplikace a hlavní komponenty.
-- `TESTING.md` — Postupy a scénáře pro testování.
+## Soubory v backend/
+- `server.js` — Vstupní bod serveru, spouští HTTP server.
+- `api.js` — Routování API požadavků (GET/POST/PATCH/DELETE).
+- `reservations.js` — Logika rezervací (validace, normalizace, CRUD operace).
+- `static.js` — Obsluha statických souborů (HTML, CSS, JS).
+- `storage.js` — Čtení a zápis reservations.json (file lock).
+- `http.js` — HTTP utility (sendJson, headers, logging, CORS).
+- `rate-limit.js` — Rate limiting požadavků.
+- `config.js` — Centrální konfigurace (port, cesty, validace, MIME typy).
 
-## Důležité soubory v tests/
+## Soubory v testy/
 - `*.spec.js` — Jednotlivé Playwright testy.
 - `playwright.config.js` — Konfigurace Playwrightu.
+- `helpers/` — Sdílené pomocné funkce pro testy.
+- `test-results/` — Výstupy z testů (reporty, logy).
 
 ---
 Tento soubor slouží pro rychlou orientaci v projektu.
