@@ -5,7 +5,8 @@ const {
   goToStep2,
   fillContact,
   goToStep3,
-  pickFirstAvailableTable
+  pickFirstAvailableTable,
+  setPlannedVibe
 } = require('./helpers/reservation-flow');
 const { getTestUser } = require('./helpers/random-user');
 
@@ -40,10 +41,7 @@ test('kompletni booking flow se zobrazenim v adminu', async ({ page, request }) 
   await page.selectOption('#reservationDrink', 'MonstRum');
   await pickFirstAvailableTable(page);
 
-  await page.locator('#plannedVibe').evaluate((el) => {
-    el.value = '9';
-    el.dispatchEvent(new Event('input', { bubbles: true }));
-  });
+  await setPlannedVibe(page, 9);
 
   await page.fill('#reservationNote', 'E2E test rezervace');
   await page.getByRole('button', { name: 'Potvrdit rezervaci' }).click();

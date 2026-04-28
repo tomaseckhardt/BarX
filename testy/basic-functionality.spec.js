@@ -5,7 +5,8 @@ const {
   goToStep2,
   fillContact,
   goToStep3,
-  pickFirstAvailableTable
+  pickFirstAvailableTable,
+  setPlannedVibe
 } = require('./helpers/reservation-flow');
 const { getTestUser } = require('./helpers/random-user');
 
@@ -46,10 +47,7 @@ test('zakladni funkcnost bez potvrzeni rezervace', async ({ page, request }) => 
   await page.selectOption('#guestCount', '3');
   await pickFirstAvailableTable(page);
 
-  await page.locator('#plannedVibe').evaluate((el) => {
-    el.value = '9';
-    el.dispatchEvent(new Event('input', { bubbles: true }));
-  });
+  await setPlannedVibe(page, 9);
 
   await expect(page.locator('#vibeDiscountBadge')).toContainText('SPLNĚNO');
   await expect(page.locator('#summaryDate')).not.toHaveText('Vyber datum');

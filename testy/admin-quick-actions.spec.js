@@ -5,7 +5,8 @@ const {
   goToStep2,
   fillContact,
   goToStep3,
-  pickFirstAvailableTable
+  pickFirstAvailableTable,
+  setPlannedVibe
 } = require('./helpers/reservation-flow');
 const { getTestUser } = require('./helpers/random-user');
 
@@ -38,6 +39,7 @@ test('admin quick actions meni stav rezervace', async ({ page, request }) => {
 
   await page.selectOption('#guestCount', '3');
   await page.selectOption('#reservationDrink', 'MonstRum');
+  await setPlannedVibe(page, 6);
   await pickFirstAvailableTable(page);
 
   await page.fill('#reservationNote', 'E2E admin actions');

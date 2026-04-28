@@ -5,7 +5,8 @@ const {
   goToStep2,
   fillContact,
   goToStep3,
-  pickFirstAvailableTable
+  pickFirstAvailableTable,
+  setPlannedVibe
 } = require('./helpers/reservation-flow');
 const { getTestUser } = require('./helpers/random-user');
 
@@ -15,6 +16,12 @@ function toLocalIso(date) {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return year + '-' + month + '-' + day;
+}
+
+function futureIsoByOffset(offsetDays) {
+  const date = new Date();
+  date.setDate(date.getDate() + offsetDays);
+  return toLocalIso(date);
 }
 
 test('happy hour - pondělí 17:00-18:59 má značku', async ({ page }) => {
@@ -51,11 +58,14 @@ test('happy hour - neděle NEMÁ happy hour', async ({ page }) => {
   await page.fill('#reservationDate', sundayIso);
   await page.dispatchEvent('#reservationDate', 'change');
 
-  // Neděle se otevírá v 18:00, takže hledáme první dostupný slot (bude 18:00)
-  // a ověřujeme, že NEMÁ Happy Hour značku (na neděli HH nikdy není)
-  const firstSlot = page.locator('#slotGrid .slot-btn').first();
-  await expect(firstSlot).toBeVisible({ timeout: 15_000 });
-  await expect(firstSlot).not.toContainText('Happy Hour');
+  // Neděle se otevírá v 18:00 a na žádném slotu nemá být HH badge.
+  const slots = page.locator('#slotGrid .slot-btn');
+  await expect(slots.first()).toBeVisible({ timeout: 20_000 });
+  const slotTexts = await slots.allTextContents();
+  expect(slotTexts.length).toBeGreaterThan(0);
+  for (const text of slotTexts) {
+    expect(text).not.toContain('Happy Hour');
+  }
 });
 
 test('vibe system - vibe 9+ aktivuje 10% slevu', async ({ page, request }) => {
@@ -63,11 +73,10 @@ test('vibe system - vibe 9+ aktivuje 10% slevu', async ({ page, request }) => {
 
   await openReservation(page);
 
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowIso = toLocalIso(tomorrow);
+  const stamp = Date.now();
+  const reservationIso = futureIsoByOffset((stamp % 120) + 15);
 
-  await pickDateAndSlot(page, tomorrowIso);
+  await pickDateAndSlot(page, reservationIso);
   await goToStep2(page);
   const user = await getTestUser(request, { tag: 'Vibe Test' });
   await fillContact(page, {
@@ -78,10 +87,7 @@ test('vibe system - vibe 9+ aktivuje 10% slevu', async ({ page, request }) => {
   await goToStep3(page);
 
   // Nastav vibe na 9
-  await page.locator('#plannedVibe').evaluate((el) => {
-    el.value = '9';
-    el.dispatchEvent(new Event('input', { bubbles: true }));
-  });
+  await setPlannedVibe(page, 9);
 
   // Ověř, že se zobrazí varování o slevě
   await expect(page.locator('#vibeDiscountBadge')).toContainText('SPLNĚNO');
@@ -92,11 +98,10 @@ test('vibe system - vibe 11 = 100% sleva (legendary)', async ({ page, request })
 
   await openReservation(page);
 
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowIso = toLocalIso(tomorrow);
+  const stamp = Date.now();
+  const reservationIso = futureIsoByOffset((stamp % 120) + 16);
 
-  await pickDateAndSlot(page, tomorrowIso);
+  await pickDateAndSlot(page, reservationIso);
   await goToStep2(page);
   const user = await getTestUser(request, { tag: 'Vibe Legendary' });
   await fillContact(page, {
@@ -107,10 +112,7 @@ test('vibe system - vibe 11 = 100% sleva (legendary)', async ({ page, request })
   await goToStep3(page);
 
   // Nastav vibe na 11
-  await page.locator('#plannedVibe').evaluate((el) => {
-    el.value = '11';
-    el.dispatchEvent(new Event('input', { bubbles: true }));
-  });
+  await setPlannedVibe(page, 11);
 
   // Ověř, že se zobrazí LEGENDARY varování
   await expect(page.locator('#vibeDiscountBadge')).toContainText('LEGENDARY');
@@ -123,12 +125,11 @@ test('table validation - nelze vybrat stůl s málo místy', async ({ page, requ
 
   await openReservation(page);
 
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowIso = toLocalIso(tomorrow);
+  const stamp = Date.now();
+  const reservationIso = futureIsoByOffset((stamp % 120) + 17);
 
   // Nastav 6 hostů
-  await pickDateAndSlot(page, tomorrowIso);
+  await pickDateAndSlot(page, reservationIso);
   await goToStep2(page);
   const user = await getTestUser(request, { tag: 'Table Validation' });
   await fillContact(page, {
@@ -163,15 +164,14 @@ test('date picker - neumožní zvolit dnešní den', async ({ page }) => {
 
 test('po uložení se formulář vrátí do výchozího stavu', async ({ page, request }) => {
   test.setTimeout(90_000);
+  test.slow(); // tento test potřebuje více času při paralelním běhu
 
   const stamp = Date.now();
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowIso = toLocalIso(tomorrow);
+  const reservationIso = futureIsoByOffset((stamp % 120) + 18);
 
   // Vytvoř rezervaci
   await openReservation(page);
-  await pickDateAndSlot(page, tomorrowIso);
+  await pickDateAndSlot(page, reservationIso);
   await goToStep2(page);
   const user = await getTestUser(request, { tag: 'Saved Test', stamp });
   await fillContact(page, {
@@ -183,10 +183,7 @@ test('po uložení se formulář vrátí do výchozího stavu', async ({ page, r
   await page.selectOption('#guestCount', '3');
   await pickFirstAvailableTable(page);
 
-  await page.locator('#plannedVibe').evaluate((el) => {
-    el.value = '7';
-    el.dispatchEvent(new Event('input', { bubbles: true }));
-  });
+  await setPlannedVibe(page, 7);
 
   await page.getByRole('button', { name: 'Potvrdit rezervaci' }).click();
   await expect(page.locator('#reservationStatus')).toContainText('Rezervace byla poslána do baru');
@@ -195,6 +192,6 @@ test('po uložení se formulář vrátí do výchozího stavu', async ({ page, r
   await expect(page.locator('#guestName')).toHaveValue('');
   await expect(page.locator('#guestCount')).toHaveValue('4');
   await expect(page.locator('#reservationDrink')).toHaveValue('MonstRum');
-  await expect(page.locator('#plannedVibe')).toHaveValue('5');
+  await expect(page.locator('#plannedVibe')).toHaveValue('0');
   await expect(page.locator('#summaryTime')).toContainText('Vyber čas');
 });

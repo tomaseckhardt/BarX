@@ -19,6 +19,16 @@
     asc: { indicator: '↑', label: 'Řazení podle data a času: vzestupně' },
     desc: { indicator: '↓', label: 'Řazení podle data a času: sestupně' }
   };
+  const DATE_SORT_TRANSITIONS = {
+    none: 'asc',
+    asc: 'desc',
+    desc: 'none'
+  };
+  const ACTIONS_HTML =
+    '<button class="mini-btn is-muted" type="button" data-action="call" aria-label="Zavolat" data-tip="Zavolat hostu">☎</button>' +
+    '<button class="mini-btn is-success" type="button" data-action="confirm" aria-label="Potvrdit" data-tip="Potvrdit rezervaci">✓</button>' +
+    '<button class="mini-btn is-gold" type="button" data-action="done" aria-label="V pořádku" data-tip="Označit jako v pořádku">★</button>' +
+    '<button class="mini-btn is-danger" type="button" data-action="delete" aria-label="Smazat" data-tip="Smazat rezervaci">🗑</button>';
 
   const elements = {
     rows: document.getElementById('reservationRows'),
@@ -70,6 +80,14 @@
   function setStatus(message, type) {
     elements.statusEl.textContent = message;
     elements.statusEl.className = type ? 'status ' + type : 'status';
+  }
+
+  function getTableLabel(tableId) {
+    return TABLE_LABELS[tableId] || tableId;
+  }
+
+  function formatNote(note) {
+    return note ? escapeHtml(note) : '<span class="muted">bez poznámky</span>';
   }
 
   function getTodayDate() {
@@ -261,8 +279,8 @@
   }
 
   function buildRowHtml(item, status) {
-    const tableLabel = escapeHtml(TABLE_LABELS[item.tableId] || item.tableId);
-    const noteHtml = item.note ? escapeHtml(item.note) : '<span class="muted">bez poznámky</span>';
+    const tableLabel = escapeHtml(getTableLabel(item.tableId));
+    const noteHtml = formatNote(item.note);
     return '<td><strong>' + escapeHtml(item.name) + '</strong><br><span class="badge status-' + status + '">' + statusLabel(status) + '</span></td>' +
       '<td>' + escapeHtml(item.phone) + '<br><span class="muted">' + escapeHtml(item.email) + '</span></td>' +
       '<td>' + formatDate(item.date, item.slot) + '<br><span class="muted">vytvořeno ' + new Date(item.createdAt).toLocaleString('cs-CZ') + '</span></td>' +
@@ -270,12 +288,7 @@
       '<td>' + escapeHtml(item.drink || '-') + '</td>' +
       '<td>' + item.guests + '</td>' +
       '<td title="' + escapeHtml(item.note || '') + '">' + noteHtml + '</td>' +
-      '<td><div class="row-actions">' +
-        '<button class="mini-btn is-muted" type="button" data-action="call" aria-label="Zavolat" data-tip="Zavolat hostu">☎</button>' +
-        '<button class="mini-btn is-success" type="button" data-action="confirm" aria-label="Potvrdit" data-tip="Potvrdit rezervaci">✓</button>' +
-        '<button class="mini-btn is-gold" type="button" data-action="done" aria-label="V pořádku" data-tip="Označit jako v pořádku">★</button>' +
-        '<button class="mini-btn is-danger" type="button" data-action="delete" aria-label="Smazat" data-tip="Smazat rezervaci">🗑</button>' +
-      '</div></td>';
+      '<td><div class="row-actions">' + ACTIONS_HTML + '</div></td>';
   }
 
   function renderTable(filtered) {
@@ -292,6 +305,7 @@
   }
 
   function buildCardHtml(item, stateValue, status) {
+    const tableLabel = escapeHtml(getTableLabel(item.tableId));
     return '<div class="card-head">' +
       '<div class="card-name">' + escapeHtml(item.name) + '</div>' +
       '<div class="card-tags">' +
@@ -300,18 +314,13 @@
         '<span class="card-tag">' + escapeHtml(item.drink || '-') + '</span>' +
       '</div>' +
     '</div>' +
-    '<div class="card-table-highlight">Stůl: ' + escapeHtml(TABLE_LABELS[item.tableId] || item.tableId) + '</div>' +
+    '<div class="card-table-highlight">Stůl: ' + tableLabel + '</div>' +
     '<div class="card-meta">' +
       formatDate(item.date, item.slot) + '<br>' +
       item.guests + ' hostů · ' + escapeHtml(item.phone) + '<br>' +
-      (item.note ? escapeHtml(item.note) : '<span class="muted">bez poznámky</span>') +
+      formatNote(item.note) +
     '</div>' +
-    '<div class="row-actions">' +
-      '<button class="mini-btn is-muted" type="button" data-action="call" aria-label="Zavolat" data-tip="Zavolat hostu">☎</button>' +
-      '<button class="mini-btn is-success" type="button" data-action="confirm" aria-label="Potvrdit" data-tip="Potvrdit rezervaci">✓</button>' +
-      '<button class="mini-btn is-gold" type="button" data-action="done" aria-label="V pořádku" data-tip="Označit jako v pořádku">★</button>' +
-      '<button class="mini-btn is-danger" type="button" data-action="delete" aria-label="Smazat" data-tip="Smazat rezervaci">🗑</button>' +
-    '</div>';
+    '<div class="row-actions">' + ACTIONS_HTML + '</div>';
   }
 
   function renderCards(filtered) {
@@ -363,13 +372,7 @@
   }
 
   function cycleDateSortMode() {
-    if (state.dateSortMode === 'none') {
-      state.dateSortMode = 'asc';
-    } else if (state.dateSortMode === 'asc') {
-      state.dateSortMode = 'desc';
-    } else {
-      state.dateSortMode = 'none';
-    }
+    state.dateSortMode = DATE_SORT_TRANSITIONS[state.dateSortMode] || 'none';
     updateDateSortUI();
     renderViews();
   }
@@ -415,6 +418,7 @@
   }
 
   registerEvents();
+  switchView(state.currentView);
   applyMobileViewDefaults();
   updateDateSortUI();
   startAutoRefresh();

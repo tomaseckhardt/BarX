@@ -95,6 +95,7 @@ test('admin filter - filtruje podle stavu', async ({ page, request }) => {
   await page.goto('/admin.html');
   await page.click('[data-view="table"]');
   await expect(page.locator('#reservationRows')).toBeVisible();
+  await page.fill('#searchInput', filterName);
 
   // Filtruj "nova"
   // Počkej na načtení konkrétní rezervace (zaručí, že data jsou v tabulce)
@@ -118,6 +119,7 @@ test('admin filter - filtruje podle stavu', async ({ page, request }) => {
   await page.goto('/admin.html');
   await page.click('[data-view="table"]');
   await expect(page.locator('#reservationRows')).toBeVisible();
+  await page.fill('#searchInput', filterName);
   await page.selectOption('#statusFilter', 'new');
   await expect(page.locator('#statusFilter')).toHaveValue('new');
 

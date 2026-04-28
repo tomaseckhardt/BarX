@@ -614,13 +614,14 @@
               <div class="field field-wide">
                 <div class="vibe-row">
                   <div class="vibe-slider-wrapper">
-                    <input id="plannedVibe" name="plannedVibe" type="range" min="1" max="11" step="1" value="5" />
+                    <input id="plannedVibe" name="plannedVibe" type="range" min="0" max="11" step="1" value="0" />
                   </div>
-                  <span id="plannedVibeValue" class="vibe-value">5/10</span>
+                  <span id="plannedVibeValue" class="vibe-value">0/10</span>
                   <span id="vibeDiscountBadge" class="vibe-discount-badge" aria-live="polite">🎯 VIBE <span class="vibe-threshold">9+</span> = -10%</span>
                 </div>
                 <div id="vibeWarning" class="vibe-warning" hidden></div>
-                <label for="plannedVibe">Plánovaný vibe</label>
+                <label for="plannedVibe" data-tip="Jak moc dnes plánuješ pít? Pomůže nám to lépe odhadnout atmosféru večera.">Plánovaný vibe</label>
+                <span id="plannedVibeError" class="field-error"></span>
               </div>
               <div class="field field-wide">
                 <textarea id="reservationNote" name="reservationNote" placeholder=" "></textarea>
@@ -947,7 +948,7 @@
     const drinkModalIngredients = document.getElementById('drinkModalIngredients');
     const drinkModalVisual = document.getElementById('drinkModalVisual');
     const drinkModalGlyph = document.getElementById('drinkModalGlyph');
-      const drinkStrengthSlider = document.getElementById('drinkStrengthSlider');
+    const drinkStrengthSlider = document.getElementById('drinkStrengthSlider');
     // ===== FORM ELEMENTS =====
     // Prvky rezervačního formuláře
     const reservationForm = document.getElementById('reservationForm');
@@ -959,6 +960,7 @@
     const reservationDateInput = document.getElementById('reservationDate');
     const plannedVibeInput = document.getElementById('plannedVibe');
     const plannedVibeValue = document.getElementById('plannedVibeValue');
+    const plannedVibeError = document.getElementById('plannedVibeError');
     const vibeDiscountBadge = document.getElementById('vibeDiscountBadge');
     const vibeWarning = document.getElementById('vibeWarning');
     const guestCountInput = document.getElementById('guestCount');
@@ -1107,16 +1109,21 @@
     }
 
     // ===== DATE & TIME UTILITIES =====
+    function toIsoDateLocal(date) {
+      return (
+        date.getFullYear() + '-' +
+        String(date.getMonth() + 1).padStart(2, '0') + '-' +
+        String(date.getDate()).padStart(2, '0')
+      );
+    }
+
     // Nastaví minimální datum na zítra
     // ===== DATE & TIME UTILITIES =====
     function setMinDate() {
       // Nastaví minimální datum na zítra (lokální čas, ne UTC)
       const minDate = new Date();
       minDate.setDate(minDate.getDate() + 1);
-      const minDateIso =
-        minDate.getFullYear() + '-' +
-        String(minDate.getMonth() + 1).padStart(2, '0') + '-' +
-        String(minDate.getDate()).padStart(2, '0');
+      const minDateIso = toIsoDateLocal(minDate);
       reservationDateInput.min = minDateIso;
       if (!reservationDateInput.value) {
         reservationDateInput.value = minDateIso;
@@ -1241,6 +1248,7 @@
       clearFieldError(guestPhoneInput, guestPhoneError);
       clearFieldError(guestEmailInput, guestEmailError);
       clearFieldError(guestCountInput, guestCountError);
+      clearFieldError(plannedVibeInput, plannedVibeError);
       clearFieldError(reservationDateInput, reservationDateError);
       clearBlockError(document.querySelector('.slot-block'), slotError);
       clearBlockError(document.querySelector('.table-block'), tableError);
@@ -1299,6 +1307,11 @@
         }
         return valid;
       } else if (step === 3) {
+        const vibe = Number(plannedVibeInput.value || 0);
+        if (vibe <= 0) {
+          setFieldError(plannedVibeInput, plannedVibeError, 'Vyber prosím plánovaný vibe (1-11).');
+          return false;
+        }
         if (!state.selectedTable) {
           setBlockError(document.querySelector('.table-block'), tableError, 'Vyber prosím stůl na mapě.');
           return false;
@@ -1422,7 +1435,7 @@
       plannedVibeValue.classList.toggle('is-legendary', isLegendary);
 
       // Dynamic thumb color: purple at low → pink/red at high
-      const t = (Math.min(vibe, 10) - 1) / 9; // 0..1
+      const t = Math.max(0, (Math.min(vibe, 10) - 1) / 9); // 0..1
       const r = Math.round(123 + (255 - 123) * t);
       const g = Math.round(63 - (63 - 45) * t);
       const b = Math.round(255 - (255 - 109) * t);
@@ -1540,11 +1553,34 @@
       });
     }
 
+    function getTableDisplayName(tableId) {
+      const table = TABLES.find(entry => entry.id === tableId);
+      return table ? table.name + ' · ' + table.zone : tableId;
+    }
+
+    function sortReservationsByDateTime(items) {
+      return [...items].sort((a, b) => new Date(a.date + 'T' + a.slot) - new Date(b.date + 'T' + b.slot));
+    }
+
+    function prefillReservationForm(item) {
+      document.getElementById('guestName').value = item.name;
+      document.getElementById('guestPhone').value = item.phone;
+      document.getElementById('guestEmail').value = item.email;
+      reservationNoteInput.value = item.note || '';
+      reservationDrinkInput.value = item.drink || 'MonstRum';
+      plannedVibeInput.value = String(item.vibe || 5);
+      guestCountInput.value = String(item.guests);
+      reservationDateInput.value = item.date;
+      state.selectedSlot = item.slot;
+      state.selectedTable = item.tableId;
+      updateVibeUI();
+      refreshReservationUI();
+      document.getElementById('reservation').scrollIntoView({ behavior: 'smooth' });
+    }
+
     function renderSavedReservations() {
       if (!savedReservations) return;
-      const reservations = [...state.reservations].sort((a, b) => {
-        return new Date(a.date + 'T' + a.slot) - new Date(b.date + 'T' + b.slot);
-      });
+      const reservations = sortReservationsByDateTime(state.reservations);
       savedReservations.innerHTML = '';
       if (!reservations.length) {
         savedReservations.innerHTML = '<div class="saved-empty">Zatím tu není žádná uložená rezervace. Jakmile ji vytvoříš, objeví se tady v přehledu.</div>';
@@ -1552,8 +1588,7 @@
       }
 
       reservations.forEach(item => {
-        const table = TABLES.find(entry => entry.id === item.tableId);
-        const tableName = table ? table.name + ' · ' + table.zone : item.tableId;
+        const tableName = getTableDisplayName(item.tableId);
         const wrapper = document.createElement('article');
         wrapper.className = 'saved-item is-clickable';
         wrapper.setAttribute('role', 'button');
@@ -1593,19 +1628,7 @@
 
         wrapper.querySelector('[data-action="reuse"]').addEventListener('click', (e) => {
           e.stopPropagation();
-          document.getElementById('guestName').value = item.name;
-          document.getElementById('guestPhone').value = item.phone;
-          document.getElementById('guestEmail').value = item.email;
-          reservationNoteInput.value = item.note || '';
-          reservationDrinkInput.value = item.drink || 'MonstRum';
-          plannedVibeInput.value = String(item.vibe || 5);
-          guestCountInput.value = String(item.guests);
-          reservationDateInput.value = item.date;
-          state.selectedSlot = item.slot;
-          state.selectedTable = item.tableId;
-          updateVibeUI();
-          refreshReservationUI();
-          document.getElementById('reservation').scrollIntoView({ behavior: 'smooth' });
+          prefillReservationForm(item);
           setStatus('Předvyplnil jsem údaje podle vybrané rezervace.', 'success');
         });
 
@@ -1639,11 +1662,7 @@
 
     function updateAvailabilityHint() {
       if (!reservationAvailability) return;
-      const today = new Date();
-      const todayIso =
-        today.getFullYear() + '-' +
-        String(today.getMonth() + 1).padStart(2, '0') + '-' +
-        String(today.getDate()).padStart(2, '0');
+      const todayIso = toIsoDateLocal(new Date());
       const selectedSlot = state && state.selectedSlot;
       const occupiedTables = new Set(
         state.reservations
@@ -1870,6 +1889,7 @@
     });
 
     plannedVibeInput.addEventListener('input', () => {
+      clearFieldError(plannedVibeInput, plannedVibeError);
       updateVibeUI();
       setStatus('');
     });
@@ -1920,7 +1940,7 @@
         const email = document.getElementById('guestEmail').value.trim();
         const note = reservationNoteInput.value.trim();
         const drink = reservationDrinkInput.value.trim();
-        const vibe = Number(plannedVibeInput.value || 5);
+        const vibe = Number(plannedVibeInput.value || 0);
         const isLegendary = vibe >= LEGENDARY_VIBE;
         const hasDiscount = isLegendary || vibe >= DISCOUNT_TRIGGER_VIBE;
         const discountLine = isLegendary ? LEGENDARY_NOTE_LINE : DISCOUNT_NOTE_LINE;
@@ -1970,7 +1990,7 @@
         clearFormDraft();
         guestCountInput.value = '4';
         reservationDrinkInput.value = 'MonstRum';
-        plannedVibeInput.value = '5';
+        plannedVibeInput.value = '0';
         setMinDate();
         state.selectedSlot = '';
         state.selectedTable = '';
@@ -2032,7 +2052,7 @@
       restoreFormDraft();
       setMinDate();
       if (!reservationDrinkInput.value) reservationDrinkInput.value = 'MonstRum';
-      if (!plannedVibeInput.value) plannedVibeInput.value = '5';
+      if (!plannedVibeInput.value) plannedVibeInput.value = '0';
       updateVibeUI();
       updateSummary();
       goToStep(1); // Start with step 1

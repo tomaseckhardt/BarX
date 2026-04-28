@@ -5,7 +5,8 @@ const {
   goToStep2,
   fillContact,
   goToStep3,
-  pickFirstAvailableTable
+  pickFirstAvailableTable,
+  setPlannedVibe
 } = require('./helpers/reservation-flow');
 
 // Test XSS prevention a input validation
@@ -16,6 +17,12 @@ function toLocalIso(date) {
   return year + '-' + month + '-' + day;
 }
 
+function futureIsoByOffset(offsetDays) {
+  const date = new Date();
+  date.setDate(date.getDate() + offsetDays);
+  return toLocalIso(date);
+}
+
 test('XSS prevention - name field se escapuje v adminu', async ({ page }) => {
   test.setTimeout(90_000);
 
@@ -24,11 +31,9 @@ test('XSS prevention - name field se escapuje v adminu', async ({ page }) => {
   
   await openReservation(page);
   
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowIso = toLocalIso(tomorrow);
+  const reservationIso = futureIsoByOffset((stamp % 120) + 19);
 
-  await pickDateAndSlot(page, tomorrowIso);
+  await pickDateAndSlot(page, reservationIso);
   await goToStep2(page);
   await fillContact(page, {
     name: xssPayload,
@@ -37,6 +42,7 @@ test('XSS prevention - name field se escapuje v adminu', async ({ page }) => {
   });
   await goToStep3(page);
   await page.selectOption('#guestCount', '2');
+  await setPlannedVibe(page, 6);
   await pickFirstAvailableTable(page);
 
   await page.getByRole('button', { name: 'Potvrdit rezervaci' }).click();
@@ -105,6 +111,33 @@ test('host count - nula hostů se odmítne', async ({ page }) => {
   // Oveř, že select má pouze platné hodnoty
   const options = await page.locator('#guestCount option').allTextContents();
   expect(options).not.toContain('0');
+});
+
+test('planned vibe - minimalni 1 lze potvrdit rezervaci', async ({ page }) => {
+  test.setTimeout(90_000);
+
+  const stamp = Date.now();
+  await openReservation(page);
+
+  const reservationIso = futureIsoByOffset((stamp % 120) + 20);
+
+  await pickDateAndSlot(page, reservationIso);
+  await goToStep2(page);
+  await fillContact(page, {
+    name: 'Vibe Required ' + stamp,
+    phone: '+420 777 ' + String(stamp).slice(-6),
+    email: 'vibe-required+' + stamp + '@barx.cz'
+  });
+  await goToStep3(page);
+  await page.selectOption('#guestCount', '2');
+  await setPlannedVibe(page, 1);
+  await pickFirstAvailableTable(page);
+
+  await expect(page.locator('#plannedVibe')).toHaveValue('1');
+  await page.getByRole('button', { name: 'Potvrdit rezervaci' }).click();
+
+  await expect(page.locator('#plannedVibeError')).toHaveText('');
+  await expect(page.locator('#reservationStatus')).toContainText('Rezervace byla poslána do baru');
 });
 
 test('API - concurrent booking same table vrati konflikt pro jednu rezervaci', async ({ request }) => {

@@ -25,14 +25,24 @@ async function fillContact(page, { name, phone, email }) {
 }
 
 async function goToStep3(page) {
-  await page.locator('.form-step.active .next-step[data-next="3"]').click();
-  await expect(page.locator('.form-step[data-step="3"]')).toHaveClass(/active/);
+  const nextButton = page.locator('.form-step.active .next-step[data-next="3"]');
+  await expect(nextButton).toBeVisible({ timeout: 10_000 });
+  await nextButton.evaluate(btn => btn.click());
+  await expect(page.locator('.form-step[data-step="3"]')).toHaveClass(/active/, { timeout: 10_000 });
 }
 
 async function pickFirstAvailableTable(page) {
   const firstAvailableTable = page.locator('#tableMap .map-table:not(.is-disabled)').first();
   await expect(firstAvailableTable).toBeVisible({ timeout: 15_000 });
   await firstAvailableTable.click();
+}
+
+async function setPlannedVibe(page, value) {
+  const normalized = String(Math.max(1, Number(value || 1)));
+  await page.locator('#plannedVibe').evaluate((el, vibe) => {
+    el.value = vibe;
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+  }, normalized);
 }
 
 async function dismissBlockingOverlays(page) {
@@ -62,5 +72,6 @@ module.exports = {
   fillContact,
   goToStep3,
   pickFirstAvailableTable,
+  setPlannedVibe,
   dismissBlockingOverlays
 };

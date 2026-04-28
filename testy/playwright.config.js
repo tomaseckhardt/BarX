@@ -1,8 +1,10 @@
 const { defineConfig } = require('@playwright/test');
+const path = require('path');
 
 module.exports = defineConfig({
   testDir: '.',
   outputDir: './test-results',
+  workers: 1,
   timeout: 30_000,
   expect: {
     timeout: 10_000
@@ -18,8 +20,8 @@ module.exports = defineConfig({
     }
   ],
   webServer: {
-    command: '/home/tester/.nvm/versions/node/v24.11.1/bin/node backend/server.js',
-    cwd: '/home/tester/Vibecoding/Bar X',
+    command: 'node backend/server.js',
+    cwd: path.resolve(__dirname, '..'),
     url: 'http://localhost:3000',
     reuseExistingServer: true,
     timeout: 120_000
