@@ -97,8 +97,8 @@
     <h1 aria-label="BarX">BAR X</h1>
     <p class="hero-sub">Kde každý drink vypráví příběh. Originální recepty, prémiové ingredience a atmosféra, kterou nezapomeneš.</p>
     <div class="hero-actions">
-      <a href="#menu" class="btn btn-primary">Prozkoumat menu</a>
-      <a href="#reservation" class="btn btn-secondary">Rezervovat stůl</a>
+      <a href="#menu" class="btn btn-primary" data-tip="Přejít na naše koktejlové menu">Prozkoumat menu</a>
+      <a href="#reservation" class="btn btn-secondary" data-tip="Přejít na online rezervační formulář">Rezervovat stůl</a>
     </div>
   </section>
 
@@ -110,11 +110,11 @@
     <h2 class="section-title">Naše drinky</h2>
 
     <div class="category-tabs">
-      <button class="tab-btn active" data-filter="all">Vše</button>
-      <button class="tab-btn" data-filter="signature">Signature</button>
-      <button class="tab-btn" data-filter="shot">Shoty</button>
-      <button class="tab-btn" data-filter="long">Long drinky</button>
-      <button class="tab-btn" data-filter="bezalkohol">Bez alkoholu</button>
+      <button class="tab-btn active" data-filter="all" data-tip="Zobrazit všechny drinky">Vše</button>
+      <button class="tab-btn" data-filter="signature" data-tip="Naše originální signature drinky">Signature</button>
+      <button class="tab-btn" data-filter="shot" data-tip="Malé, ale intenzivní shoty">Shoty</button>
+      <button class="tab-btn" data-filter="long" data-tip="Osvěžující long drinky na delší sipping">Long drinky</button>
+      <button class="tab-btn" data-filter="bezalkohol" data-tip="Nealkoholické mocktaily a limonády">Bez alkoholu</button>
     </div>
  
     <div class="menu-grid" id="menuGrid">
@@ -374,7 +374,7 @@
       </div>
       </div>
       <div style="width:100%;display:flex;justify-content:center;margin-top:2.2rem;">
-        <button id="showMoreDrinks" class="btn btn-secondary">Další drinky</button>
+        <button id="showMoreDrinks" class="btn btn-secondary" data-tip="Zobrazit více drinků z menu">Další drinky</button>
       </div>
       </div>
   </section>
@@ -408,27 +408,27 @@
     <span class="section-label">Atmosféra</span>
     <h2 class="section-title">Nahlédni do baru</h2>
     <div class="gallery-grid">
-      <button class="gallery-item" data-caption="Barový pult s osvětlením" type="button" aria-label="Zvětšit fotku: Barový pult s osvětlením">
+      <button class="gallery-item" data-caption="Barový pult s osvětlením" type="button" aria-label="Zvětšit fotku: Barový pult s osvětlením" data-tip="Klikni pro zvětšení">
         <div class="gallery-placeholder" style="--gp-hue:270">🍸</div>
         <span class="gallery-caption">Barový pult</span>
       </button>
-      <button class="gallery-item" data-caption="VIP salonek pro soukromé akce" type="button" aria-label="Zvětšit fotku: VIP salonek">
+      <button class="gallery-item" data-caption="VIP salonek pro soukromé akce" type="button" aria-label="Zvětšit fotku: VIP salonek" data-tip="Klikni pro zvětšení">
         <div class="gallery-placeholder" style="--gp-hue:340">🛋️</div>
         <span class="gallery-caption">VIP salonek</span>
       </button>
-      <button class="gallery-item" data-caption="Signature koktejl MonstRum" type="button" aria-label="Zvětšit fotku: Signature koktejl">
+      <button class="gallery-item" data-caption="Signature koktejl MonstRum" type="button" aria-label="Zvětšit fotku: Signature koktejl" data-tip="Klikni pro zvětšení">
         <div class="gallery-placeholder" style="--gp-hue:150">🐉</div>
         <span class="gallery-caption">Signature drinky</span>
       </button>
-      <button class="gallery-item" data-caption="Páteční večer v plném proudu" type="button" aria-label="Zvětšit fotku: Páteční večer">
+      <button class="gallery-item" data-caption="Páteční večer v plném proudu" type="button" aria-label="Zvětšit fotku: Páteční večer" data-tip="Klikni pro zvětšení">
         <div class="gallery-placeholder" style="--gp-hue:30">🎶</div>
         <span class="gallery-caption">Páteční party</span>
       </button>
-      <button class="gallery-item" data-caption="Lounge zóna s výhledem" type="button" aria-label="Zvětšit fotku: Lounge zóna">
+      <button class="gallery-item" data-caption="Lounge zóna s výhledem" type="button" aria-label="Zvětšit fotku: Lounge zóna" data-tip="Klikni pro zvětšení">
         <div class="gallery-placeholder" style="--gp-hue:200">🌙</div>
         <span class="gallery-caption">Lounge zóna</span>
       </button>
-      <button class="gallery-item" data-caption="Detail přípravy koktejlu" type="button" aria-label="Zvětšit fotku: Příprava koktejlu">
+      <button class="gallery-item" data-caption="Detail přípravy koktejlu" type="button" aria-label="Zvětšit fotku: Příprava koktejlu" data-tip="Klikni pro zvětšení">
         <div class="gallery-placeholder" style="--gp-hue:50">✨</div>
         <span class="gallery-caption">Za barem</span>
       </button>
@@ -529,9 +529,9 @@
         <form id="reservationForm" class="reservation-form">
           <!-- Step Indicator -->
           <div class="step-indicator">
-            <div class="step-dot active" data-step="1"></div>
-            <div class="step-dot" data-step="2"></div>
-            <div class="step-dot" data-step="3"></div>
+            <div class="step-dot active" data-step="1" data-tip="Krok 1: Datum a čas"></div>
+            <div class="step-dot" data-step="2" data-tip="Krok 2: Kontaktní údaje"></div>
+            <div class="step-dot" data-step="3" data-tip="Krok 3: Drink a stůl"></div>
           </div>
 
           <!-- STEP 1: Kdy dorazíte? -->
@@ -540,7 +540,7 @@
             <div class="reservation-grid">
               <div class="field">
                 <input id="reservationDate" name="reservationDate" type="date" required />
-                <label for="reservationDate">Datum</label>
+                <label for="reservationDate" data-tip="Vyber datum návštěvy">Datum</label>
                 <span id="reservationDateError" class="field-error"></span>
               </div>
             </div>
@@ -551,7 +551,7 @@
             </div>
             <div class="step-nav">
               <div></div>
-              <button type="button" class="btn btn-primary next-step" data-next="2">Pokračovat</button>
+              <button type="button" class="btn btn-primary next-step" data-next="2" data-tip="Přejít na zadání kontaktních údajů">Pokračovat</button>
             </div>
           </div>
 
@@ -561,23 +561,23 @@
             <div class="reservation-grid">
               <div class="field">
                 <input id="guestName" name="guestName" type="text" placeholder=" " required />
-                <label for="guestName">Jméno</label>
+                <label for="guestName" data-tip="Jméno, které použijeme při potvrzení">Jméno</label>
                 <span id="guestNameError" class="field-error"></span>
               </div>
               <div class="field">
                 <input id="guestPhone" name="guestPhone" type="tel" placeholder=" " required />
-                <label for="guestPhone">Telefon</label>
+                <label for="guestPhone" data-tip="Zavoláme pro potvrzení rezervace">Telefon</label>
                 <span id="guestPhoneError" class="field-error"></span>
               </div>
               <div class="field field-wide">
                 <input id="guestEmail" name="guestEmail" type="email" placeholder=" " required />
-                <label for="guestEmail">E-mail</label>
+                <label for="guestEmail" data-tip="Potvrzení rezervace pošleme na tento e-mail">E-mail</label>
                 <span id="guestEmailError" class="field-error"></span>
               </div>
             </div>
             <div class="step-nav">
-              <button type="button" class="btn btn-secondary prev-step" data-prev="1">Zpět</button>
-              <button type="button" class="btn btn-primary next-step" data-next="3">Pokračovat</button>
+              <button type="button" class="btn btn-secondary prev-step" data-prev="1" data-tip="Vrátit se na výběr termínu">Zpět</button>
+              <button type="button" class="btn btn-primary next-step" data-next="3" data-tip="Přejít na výběr drinku a stůlu">Pokračovat</button>
             </div>
           </div>
 
@@ -594,7 +594,7 @@
                   <option value="6">6 hostů</option>
                   <option value="8">8 hostů</option>
                 </select>
-                <label for="guestCount">Počet hostů</label>
+                <label for="guestCount" data-tip="Počet přátel, kteří přijdou">Počet hostů</label>
                 <span id="guestCountError" class="field-error"></span>
               </div>
               <div class="field">
@@ -609,7 +609,7 @@
                   <option value="Violet Ice">Violet Ice – 89 Kč</option>
                   <option value="Smoke Signal">Smoke Signal – 85 Kč</option>
                 </select>
-                <label for="reservationDrink">Pre-order drinku</label>
+                <label for="reservationDrink" data-tip="Drink bude připraven na stole při příchodu">Pre-order drinku</label>
                 <span class="field-hint">Při příchodu bude na stole.</span>
               </div>
               <div class="field field-wide">
@@ -645,8 +645,8 @@
             <div class="reservation-actions">
               <div id="reservationStatus" class="reservation-status" role="status"></div>
               <div class="step-nav" style="width:100%; margin-top:0;">
-                <button type="button" class="btn btn-secondary prev-step" data-prev="2">Zpět</button>
-                <button type="submit" class="btn btn-primary">Potvrdit rezervaci</button>
+                <button type="button" class="btn btn-secondary prev-step" data-prev="2" data-tip="Vrátit se na kontaktní údaje">Zpět</button>
+                <button type="submit" class="btn btn-primary" data-tip="Odeslat rezervaci na server">Potvrdit rezervaci</button>
               </div>
             </div>
           </div>
@@ -659,31 +659,31 @@
           <h3>Souhrn večera</h3>
           <div class="summary-list">
             <div class="summary-row">
-              <span>Datum</span>
+              <span data-tip="Datum vaší rezervace">Datum</span>
               <strong id="summaryDate">Vyber datum</strong>
             </div>
             <div class="summary-row">
-              <span>Čas</span>
+              <span data-tip="Čas začátku večera">Čas</span>
               <strong id="summaryTime">Vyber čas</strong>
             </div>
             <div class="summary-row">
-              <span>Stůl</span>
+              <span data-tip="Váš vybraný stůl">Stůl</span>
               <strong id="summaryTable">Vyber místo</strong>
             </div>
             <div class="summary-row">
-              <span>Pre-order</span>
+              <span data-tip="Drink připravený na stole při příchodu">Pre-order</span>
               <strong id="summaryDrink">Vyber drink</strong>
             </div>
             <div class="summary-row">
-              <span>Vibe</span>
+              <span data-tip="Vaše plánovaná intenzita večera (0–11)">Vibe</span>
               <strong id="summaryVibe">5/10</strong>
             </div>
             <div id="summaryDiscountRow" class="summary-row summary-row-discount" hidden>
-              <span>Sleva</span>
+              <span data-tip="Sleva za Vibe 9+ aktivována">Sleva</span>
               <strong id="summaryDiscount">10% aktivní</strong>
             </div>
             <div class="summary-row">
-              <span>Hosté</span>
+              <span data-tip="Celkový počet hostů">Hosté</span>
               <strong id="summaryGuests">4 hosté</strong>
             </div>
             <div class="summary-row">
@@ -739,7 +739,7 @@
         <div class="contact-icon">📱</div>
         <div class="contact-label">Telefon</div>
         <div class="contact-value">+420 777 123 456</div>
-        <a class="quick-call" href="tel:+420777123456">Zavolat hned</a>
+        <a class="quick-call" href="tel:+420777123456" data-tip="Zavolat přímo ze zařízení">Zavolat hned</a>
       </div>
       <div class="contact-card">
         <div class="contact-icon">✉️</div>
@@ -813,14 +813,14 @@
 
   <!-- FOOTER -->
   <footer>
-    <p>© 2026 <span>BarX</span> · Craft Cocktail Bar · Praha · <a class="admin-link" href="admin.html">Admin přehled</a> · Pij zodpovědně 🍹(toto je jen ilustrační web)</p>
+    <p>© 2026 <span>BarX</span> · Craft Cocktail Bar · Praha · <a class="admin-link" href="admin.html" data-tip="Admin přehled rezervací">Admin přehled</a> · Pij zodpovědně 🍹(toto je jen ilustrační web)</p>
   </footer>
 
   <!-- TOAST CONTAINER -->
   <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
   <!-- BACK TO TOP -->
-  <button id="backToTop" class="back-to-top" type="button" aria-label="Zpět nahoru">↑</button>
+  <button id="backToTop" class="back-to-top" type="button" aria-label="Zpět nahoru" data-tip="Zpět na začátek stránky">↑</button>
 
   <!-- GDPR BANNER -->
     <!-- POPUP: Speciální akce -->
@@ -874,8 +874,8 @@
   <div id="gdprBanner" class="gdpr-banner" hidden>
     <p>Tento web používá soubory cookies a služby třetích stran (Google Fonts, Google Maps) pro správné fungování. Pokračováním souhlasíte s jejich použitím.</p>
     <div class="gdpr-actions">
-      <button id="gdprAccept" class="btn btn-primary" type="button">Souhlasim</button>
-      <button id="gdprDecline" class="btn btn-secondary" type="button">Odmítnout</button>
+      <button id="gdprAccept" class="btn btn-primary" type="button" data-tip="Přijmout všechny cookies">Souhlasim</button>
+      <button id="gdprDecline" class="btn btn-secondary" type="button" data-tip="Odmítnout volitelné cookies">Odmítnout</button>
     </div>
   </div>
 

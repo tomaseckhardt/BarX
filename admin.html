@@ -34,14 +34,14 @@
 
     <section class="panel">
       <div class="stats">
-        <div class="stat"><span>Celkem rezervací</span><strong id="statTotal">0</strong></div>
-        <div class="stat"><span>Dnešní rezervace</span><strong id="statToday">0</strong></div>
-        <div class="stat"><span>Nejčastější drink</span><strong id="statDrink">-</strong></div>
-        <div class="stat"><span>Hostů celkem</span><strong id="statGuests">0</strong></div>
+        <div class="stat" data-tip="Počet všech rezervací v systému"><span>Celkem rezervací</span><strong id="statTotal">0</strong></div>
+        <div class="stat" data-tip="Rezervace naplánované na dnešní datum"><span>Dnešní rezervace</span><strong id="statToday">0</strong></div>
+        <div class="stat" data-tip="Nejobjednávanější pre-order drink"><span>Nejastější drink</span><strong id="statDrink">-</strong></div>
+        <div class="stat" data-tip="Celkový počet hostů ze všech rezervací"><span>Hostů celkem</span><strong id="statGuests">0</strong></div>
       </div>
       <div class="toolbar">
         <div class="search">
-          <input id="searchInput" type="search" aria-label="Hledat rezervace" placeholder="Hledat podle jména, drinku, telefonu nebo stolu" />
+          <input id="searchInput" type="search" aria-label="Hledat rezervace" placeholder="Hledat podle jména, drinku, telefonu nebo stolu" data-tip="Hledat podle jména, telefonu, e-mailu nebo drinku" />
         </div>
         <div class="filter-controls" aria-label="Filtr a razeni rezervaci">
           <select id="statusFilter" class="toolbar-select" aria-label="Filtr podle stavu" data-tip="Filtr podle stavu rezervace">
