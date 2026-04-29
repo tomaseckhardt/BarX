@@ -1,5 +1,6 @@
 (function () {
   'use strict';
+  console.log('[admin.js] Starting admin dashboard...');
 
   // ===== Admin dashboard BarX =====
   // Spravuje seznam rezervací: načítání, vyhledávání, filtrování, akce (volat, potvrdit, smazat).
@@ -145,14 +146,16 @@
     }, 0));
 
     const drinkCounts = items.reduce(function (accumulator, item) {
-      const key = item.drink || 'Bez drinku';
-      accumulator[key] = (accumulator[key] || 0) + 1;
+      const key = (item.drink || '').trim();
+      if (key) {
+        accumulator[key] = (accumulator[key] || 0) + 1;
+      }
       return accumulator;
     }, {});
     const topDrink = Object.entries(drinkCounts).sort(function (left, right) {
       return right[1] - left[1];
     })[0];
-    elements.statDrink.textContent = topDrink ? topDrink[0] : '-';
+    elements.statDrink.textContent = topDrink ? topDrink[0] : '—';
   }
 
   // Escapeuje HTML entity — ochrana před XSS při vkládání uživatelských dat do DOM.
@@ -383,6 +386,17 @@
     }
   }
 
+  function setModeInfo() {
+    const modeEl = document.getElementById('modeInfo');
+    if (!modeEl) return;
+    const isLocal = /^(localhost|127\.0\.0\.1)/.test(window.location.hostname);
+    const text = isLocal 
+      ? 'Přehled všech rezervací uložených v místním JSON souboru. Stránka čte stejná data jako formulář na hlavním webu.'
+      : 'Přehled všech rezervací z Supabase. Data se sdílí v reálném čase s formulářem.';
+    modeEl.textContent = text;
+    console.log('[setModeInfo] isLocal=' + isLocal + ', text=' + text);
+  }
+
   function registerEvents() {
     elements.refreshBtn.addEventListener('click', async function () {
       try {
@@ -420,6 +434,7 @@
   registerEvents();
   switchView(state.currentView);
   applyMobileViewDefaults();
+  setModeInfo();
   updateDateSortUI();
   startAutoRefresh();
 
