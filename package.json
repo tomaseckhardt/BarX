@@ -4,7 +4,12 @@
   "private": true,
   "scripts": {
     "start": "node backend/server.js",
-    "test:e2e": "npx playwright test --config=testy/playwright.config.js"
+    "clean": "rm -rf test-results testy/test-results playwright-report logs server.log",
+    "test": "npm run test:e2e",
+    "test:e2e": "npx playwright test --config=testy/playwright.config.js",
+    "test:e2e:headed": "npx playwright test --config=testy/playwright.config.js --headed",
+    "test:e2e:debug": "npx playwright test --config=testy/playwright.config.js --debug",
+    "chore:check": "npm run test:e2e testy/api-reservation-status.spec.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.54.2"

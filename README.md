@@ -1,76 +1,110 @@
-# BarX — Craft Cocktail Bar Praha
+# BarX — rezervační systém
 
-Rezervační systém s veřejným webem a admin dashboardem. Projekt je připravený pro statický hosting na GitHub Pages, data běží přímo přes Supabase Data API.
+Projekt má dva provozní režimy:
 
-## Rychlý start (GitHub Pages)
+1. Lokální režim (Node backend + JSON data)
+2. Produkční režim (statický web + Supabase)
 
-1. V Supabase vytvoř tabulku `reservations` se správnými sloupci.
-2. Otevři `supabase-config.js` a nastav:
-    - `url`
-    - `publishableKey` (jen public key, nikdy secret/service role)
-3. Pushni repozitář na GitHub.
-4. Zapni GitHub Pages (Deploy from branch: `main`, root).
+Frontend používá stejná API volání v obou režimech. Přepnutí je automatické podle hostname:
 
-Po nasazení běží web čistě staticky bez Node serveru.
+- localhost / 127.0.0.1: požadavky jdou na lokální endpoint /api/reservations
+- produkční doména: požadavky jdou přes Supabase Data API (konfigurace v supabase-config.js)
 
-## Struktura projektu
+## 1) Lokální režim
 
-```
-├── index.html          Veřejný web (menu, rezervace, kontakt)
-├── admin.html          Admin dashboard (přehled rezervací)
-├── styles.css          Sdílené styly pro obě stránky
-├── supabase-config.js  Konfigurace + API vrstva pro Supabase
-├── server.js           Volitelný lokální Node backend (není nutný pro GitHub Pages)
-├── reservations.json   Starý lokální datový soubor (pro GitHub Pages se nepoužívá)
-├── package.json        Skripty a závislosti
-├── tests/              Playwright E2E testy
-│   ├── playwright.config.js
-│   ├── basic-functionality.spec.js
-│   ├── full-booking-admin.spec.js
-│   ├── admin-quick-actions.spec.js
-│   └── api-reservation-status.spec.js
-└── docs/
-    ├── API.md          REST API dokumentace
-    ├── ARCHITECTURE.md Architektura a klíčové komponenty
-    └── TESTING.md      Průvodce testováním
-```
+Použití:
 
-## Hlavní funkce
+- vývoj
+- Playwright E2E testy
+- lokální ladění backendu
 
-| Stránka | Co dělá |
-|---------|---------|
-| **index.html** | Drink menu s filtry a modály, rezervační formulář s live souhrnem, vibe systém se slevami |
-| **admin.html** | Tabulkový/kartový přehled rezervací, filtrování, řazení, rychlé akce (volat → potvrdit → hotovo → smazat) |
-| **supabase-config.js** | Přímé CRUD volání na Supabase Data API bez backendu |
-
-## Konfigurace pro GitHub Pages
-
-V souboru `supabase-config.js` nastav:
-
-- `url`: URL projektu, např. `https://xyzcompany.supabase.co`
-- `publishableKey`: Supabase publishable key
-- `table`: název tabulky (default `reservations`)
-
-## RLS policies (doporučeno)
-
-Pro browser-only variantu nastav v Supabase RLS policies tak, aby frontend mohl číst a měnit jen to, co potřebuje. Minimálně:
-
-- `SELECT` pro veřejné čtení rezervací (nebo jen pro autorizované role)
-- `INSERT` pro vytváření rezervací
-- `UPDATE` pro admin akce (status/note)
-- `DELETE` pro rušení rezervací
-
-Bez správných RLS policy budou požadavky z GitHub Pages končit chybou 401/403.
-
-## Lokální testy (volitelné)
+Spuštění:
 
 ```bash
 npm install
-npm run test:e2e
+npm start
 ```
 
-## Další dokumentace
+Server běží na http://localhost:3000 a obsluhuje:
 
-- [docs/API.md](docs/API.md) — Endpointy, payloady, chybové kódy
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — Komponenty, DOM IDs, JS funkce, datový model
-- [docs/TESTING.md](docs/TESTING.md) — Jak spustit testy, co pokrývají, jak psát nové
+- statické soubory (index.html, admin.html, CSS, JS)
+- API /api/reservations
+- lokální perzistenci do reservations.json
+
+Testy:
+
+```bash
+npm test
+```
+
+Další užitečné skripty:
+
+- npm run test:e2e:headed
+- npm run test:e2e:debug
+- npm run clean
+
+## 2) Produkční režim
+
+Použití:
+
+- statický hosting (např. GitHub Pages)
+- backend zajišťuje Supabase Data API
+
+Konfigurace:
+
+1. Otevři supabase-config.js
+2. Nastav url, publishableKey a table
+3. Nasaď statické soubory na hosting
+
+Důležité:
+
+- používej pouze publishable key
+- nikdy neukládej service role key do frontendu
+- nastav správné RLS policies, jinak zápisy/čtení skončí 401/403
+
+Doporučené minimum RLS:
+
+- SELECT
+- INSERT
+- UPDATE
+- DELETE
+
+## Struktura projektu (aktuální)
+
+```text
+.
+├── index.html
+├── admin.html
+├── scripts.js
+├── admin.js
+├── styles.css
+├── supabase-config.js
+├── backend/
+│   ├── server.js
+│   ├── api.js
+│   ├── reservations.js
+│   ├── static.js
+│   ├── storage.js
+│   ├── http.js
+│   ├── rate-limit.js
+│   └── config.js
+├── testy/
+│   ├── playwright.config.js
+│   ├── *.spec.js
+│   └── helpers/
+├── docs/
+│   ├── QUICKSTART.md
+│   ├── API.md
+│   ├── ARCHITECTURE.md
+│   ├── STRUCTURE.md
+│   └── TESTING.md
+└── package.json
+```
+
+## Dokumentace
+
+- [docs/QUICKSTART.md](docs/QUICKSTART.md)
+- [docs/API.md](docs/API.md)
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- [docs/STRUCTURE.md](docs/STRUCTURE.md)
+- [docs/TESTING.md](docs/TESTING.md)

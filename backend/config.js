@@ -9,7 +9,7 @@ const ROOT_DIR = path.join(__dirname, '..');
 
 const PORT = Number(process.env.PORT) || 3000;
 const DATA_FILE = path.join(ROOT_DIR, 'reservations.json');
-const LOG_FILE = path.join(ROOT_DIR, 'server.log');
+const LOG_FILE = path.join(ROOT_DIR, 'logs', 'server.log');
 
 // Povolené CORS origins — čárkou oddělený seznam v env proměnné ALLOWED_ORIGINS.
 // Výchozí hodnota pokrývá lokální vývoj (localhost i 127.0.0.1).

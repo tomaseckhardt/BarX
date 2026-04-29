@@ -94,7 +94,7 @@ test('popis co test ověřuje', async ({ page }) => {
 ### Spuštění s vizuálním debug
 
 ```bash
-npx playwright test --config=tests/playwright.config.js --headed    # S oknem prohlížeče
-npx playwright test --config=tests/playwright.config.js --debug     # Step-by-step debug
-npx playwright show-trace tests/test-results/trace.zip              # Trace Viewer
+npx playwright test --config=testy/playwright.config.js --headed    # S oknem prohlížeče
+npx playwright test --config=testy/playwright.config.js --debug     # Step-by-step debug
+npx playwright show-trace testy/test-results/trace.zip              # Trace Viewer
 ```

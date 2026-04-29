@@ -10,7 +10,7 @@ Tento soubor popisuje základní strukturu projektu a účel jednotlivých soubo
 - `styles.css` — Hlavní stylopis pro celý web.
 - `supabase-config.js` — Konfigurace Supabase pro produkční prostředí.
 - `package.json` — Konfigurace Node.js projektu a závislostí.
-- `reservations.json` — Databáze rezervací (JSON formát, lokální vývoj).
+- `reservations.json` — Lokální runtime data rezervací pro Node backend.
 - `README.md` — Úvodní informace a základní popis projektu.
 
 ## Složky
@@ -32,7 +32,7 @@ Tento soubor popisuje základní strukturu projektu a účel jednotlivých soubo
 - `*.spec.js` — Jednotlivé Playwright testy.
 - `playwright.config.js` — Konfigurace Playwrightu.
 - `helpers/` — Sdílené pomocné funkce pro testy.
-- `test-results/` — Výstupy z testů (reporty, logy).
+- `test-results/` — Výstupy z testů (generované, necommitují se).
 
 ---
 Tento soubor slouží pro rychlou orientaci v projektu.

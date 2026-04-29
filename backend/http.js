@@ -2,6 +2,7 @@
 // Sdílené pomocné funkce používané napříč všemi backend moduly.
 
 const fs = require('fs');
+const path = require('path');
 
 const { ALLOWED_ORIGINS, LOG_FILE, VALIDATION } = require('./config');
 
@@ -75,6 +76,7 @@ function logRequest(req, pathname, statusCode, durationMs, requestId) {
 function logError(error, context = '') {
   const timestamp = new Date().toISOString();
   const message = `[${timestamp}] ${context}\nError: ${error.message}\nStack: ${error.stack}\n---\n`;
+  fs.mkdirSync(path.dirname(LOG_FILE), { recursive: true });
   fs.appendFile(LOG_FILE, message, () => {});
   console.error(message);
 }

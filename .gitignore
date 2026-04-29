@@ -18,7 +18,11 @@ node_modules/
 
 # Local runtime data
 reservations.json
+logs/
+server.log
 
 # Playwright run artifacts
-tests/test-results/.last-run.json
+test-results/
+playwright-report/
 testy/test-results/
+testy/test-results/.last-run.json
